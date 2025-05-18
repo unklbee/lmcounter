@@ -1,0 +1,27 @@
+2025-05-16 19:08:12 |     INFO |                      root | Detailed logging configured to: C:\Users\Hasbi Ash Shiddiqi\PycharmProjects\NanoDet\vehicle_counter\logs\debug_20250516-190812.log
+2025-05-16 19:08:12 |     INFO |                      root | ==================================================
+2025-05-16 19:08:12 |     INFO |                      root | VEHICLE COUNTER DEBUG STARTUP - PID: 16836
+2025-05-16 19:08:12 |     INFO |                      root | ==================================================
+2025-05-16 19:08:12 |     INFO |                      root | Starting environment setup (Python 3.12.4 (tags/v3.12.4:8e8a4ba, Jun  6 2024, 19:30:16) [MSC v.1940 64 bit (AMD64)])
+2025-05-16 19:08:12 |     INFO |                      root | Project root: C:\Users\Hasbi Ash Shiddiqi\PycharmProjects\NanoDet\vehicle_counter
+2025-05-16 19:08:12 |     INFO |                      root | Folder created/verified: C:\Users\Hasbi Ash Shiddiqi\PycharmProjects\NanoDet\vehicle_counter\config\presets
+2025-05-16 19:08:12 |     INFO |                      root | Folder created/verified: C:\Users\Hasbi Ash Shiddiqi\PycharmProjects\NanoDet\vehicle_counter\data\db
+2025-05-16 19:08:12 |     INFO |                      root | Folder created/verified: C:\Users\Hasbi Ash Shiddiqi\PycharmProjects\NanoDet\vehicle_counter\logs
+2025-05-16 19:08:12 |     INFO |                      root | Platform: Windows-11-10.0.26100-SP0
+2025-05-16 19:08:12 |     INFO |                      root | Python executable: C:\Users\Hasbi Ash Shiddiqi\PycharmProjects\NanoDet\vehicle_counter\.venv\Scripts\python.exe
+2025-05-16 19:08:12 |     INFO |                      root | Python path: ['C:\\Users\\Hasbi Ash Shiddiqi\\PycharmProjects\\NanoDet\\vehicle_counter', 'C:\\Users\\Hasbi Ash Shiddiqi\\PycharmProjects\\NanoDet\\vehicle_counter', 'C:\\Program Files\\JetBrains\\PyCharm 2024.1.4\\plugins\\python-ce\\helpers\\pycharm_display', 'C:\\Users\\Hasbi Ash Shiddiqi\\AppData\\Local\\Programs\\Python\\Python312\\python312.zip', 'C:\\Users\\Hasbi Ash Shiddiqi\\AppData\\Local\\Programs\\Python\\Python312\\DLLs', 'C:\\Users\\Hasbi Ash Shiddiqi\\AppData\\Local\\Programs\\Python\\Python312\\Lib', 'C:\\Users\\Hasbi Ash Shiddiqi\\AppData\\Local\\Programs\\Python\\Python312', 'C:\\Users\\Hasbi Ash Shiddiqi\\PycharmProjects\\NanoDet\\vehicle_counter\\.venv', 'C:\\Users\\Hasbi Ash Shiddiqi\\PycharmProjects\\NanoDet\\vehicle_counter\\.venv\\Lib\\site-packages', 'C:\\Program Files\\JetBrains\\PyCharm 2024.1.4\\plugins\\python-ce\\helpers\\pycharm_matplotlib_backend', 'C:\\Program Files\\JetBrains\\PyCharm 2024.1.4\\plugins\\python-ce\\helpers\\pycharm_plotly_backend', 'C:\\Users\\Hasbi Ash Shiddiqi\\PycharmProjects\\NanoDet\\vehicle_counter']
+2025-05-16 19:08:12 |     INFO |                      root | MEMORY SNAPSHOT (environment_setup): RSS: N/A, VMS: N/A
+2025-05-16 19:08:12 |     INFO |                      root | Environment setup completed in 0.19 seconds
+2025-05-16 19:08:12 |     INFO |                      root | Configuring memory limits...
+2025-05-16 19:08:12 |     INFO |                      root | Recursion limit increased: 1000 -> 5000
+2025-05-16 19:08:12 |     INFO |                      root | Thread stack size set to 8MB
+2025-05-16 19:08:12 |     INFO |                      root | Windows error mode configured to suppress crash dialogs
+2025-05-16 19:08:12 |     INFO |                      root | SetProcessWorkingSetSize result: 0
+2025-05-16 19:08:12 |     INFO |                      root | Memory limits configuration completed
+2025-05-16 19:08:12 |     INFO |                      root | MEMORY SNAPSHOT (after_setup): RSS: N/A, VMS: N/A
+2025-05-16 19:08:12 |     INFO |                      root | Importing PyQt5...
+2025-05-16 19:08:12 |     INFO |                      root | PyQt5 imported successfully in 0.05 seconds
+2025-05-16 19:08:12 |     INFO |                      root | MEMORY SNAPSHOT (after_pyqt_import): RSS: N/A, VMS: N/A
+2025-05-16 19:08:12 |     INFO |                      root | Creating QApplication...
+2025-05-16 19:08:12 |     INFO |                      root | QApplication created
+2025-05-16 19:08:12 |     INFO |                      root | Loading MainWindow... (this may take a moment)

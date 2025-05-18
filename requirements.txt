@@ -1,0 +1,23 @@
+# Core dependencies
+numpy>=1.19.0
+opencv-python>=4.5.0
+openvino>=2022.3.0
+PyQt5==5.15.9
+PyQt5-sip>=12.9.0
+
+# Data handling
+#pandas>=1.3.0  # Optional, for data analysis
+#matplotlib>=3.4.0  # Optional, for visualization
+
+# Utility
+pyyaml>=6.0  # For configuration files (alternative to JSON)
+Pillow>=8.0.0  # For image handling
+tqdm>=4.60.0  # For progress bars
+
+# Development tools
+#pytest>=6.0.0  # For testing (optional)
+#pylint>=2.8.0  # For code quality (optional)
+#black>=21.5b2  # For code formatting (optional)
+
+# Documentation
+#sphinx>=4.0.0  # For documentation generation (optional)

@@ -1,0 +1,38 @@
+{
+  "id": "7de5be1f-3e89-46de-9437-1e4d2b81e978",
+  "name": "New Preset",
+  "description": "",
+  "created": "2025-05-16T16:56:42.405308",
+  "modified": "2025-05-16T16:56:42.405308",
+  "source": {
+    "type": "file",
+    "path": "",
+    "options": {}
+  },
+  "detector": {
+    "model": "yolov5n.xml",
+    "device": "GPU",
+    "conf_threshold": 0.5,
+    "nms_threshold": 0.4,
+    "async_mode": true
+  },
+  "tracker": {
+    "max_disappeared": 10,
+    "min_iou_threshold": 0.3,
+    "max_distance": 150
+  },
+  "rois": {},
+  "counting_lines": {},
+  "output": {
+    "save_video": false,
+    "output_path": "",
+    "push_to_api": false,
+    "api_endpoint": ""
+  },
+  "display": {
+    "show_detections": true,
+    "show_tracking": true,
+    "show_counting": true,
+    "show_performance": true
+  }
+}

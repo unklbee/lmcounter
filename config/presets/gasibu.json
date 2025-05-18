@@ -1,0 +1,42 @@
+{
+  "id": "097e53d5-51ff-4920-862d-03a3a9e711cb",
+  "name": "New Preset",
+  "description": "",
+  "created": "2025-05-16T17:18:51.231939",
+  "modified": "2025-05-16T17:18:53.609449",
+  "source": {
+    "type": "file",
+    "path": "C:/Users/Hasbi Ash Shiddiqi/Downloads/sample.mp4",
+    "options": {
+      "loop": false
+    }
+  },
+  "detector": {
+    "model": "C:/Users/Hasbi Ash Shiddiqi/PycharmProjects/NanoDet/vehicle_counter/data/models/nanodet-plus-m_416_openvino.xml",
+    "device": "GPU",
+    "conf_threshold": 0.25000000000000006,
+    "nms_threshold": 0.4,
+    "async_mode": true
+  },
+  "tracker": {
+    "max_disappeared": 10,
+    "min_iou_threshold": 0.3,
+    "max_distance": 150
+  },
+  "rois": {},
+  "counting_lines": {},
+  "output": {
+    "save_video": false,
+    "output_path": "",
+    "push_to_api": false,
+    "api_endpoint": "http://localhost:8000/api/counts",
+    "save_to_db": true
+  },
+  "display": {
+    "show_boxes": true,
+    "show_ids": true,
+    "show_tracks": true,
+    "show_counts": true,
+    "show_events": true
+  }
+}

@@ -1,0 +1,181 @@
+Struktur Proyek Vehicle Counter
+Saya akan membuatkan struktur proyek yang baik dan skalabel untuk aplikasi vehicle counter berdasarkan kebutuhan Anda. Berikut adalah struktur folder dan file yang direkomendasikan:
+Struktur Folder Dasar
+vehicle_counter/
+├── main.py                     # Entry point utama aplikasi
+├── start.py                    # start app
+├── start_debug.py              # start for debug
+├── requirements.txt            # Dependensi packages
+├── config/                     # Konfigurasi aplikasi
+│   ├── settings.py             # Pengaturan global aplikasi
+│   └── presets/                # Folder untuk menyimpan preset konfigurasi
+│       └── default.json        # Preset default
+├── core/                       # Core functionality
+│   ├── __init__.py
+│   ├── detector.py             # Engine deteksi kendaraan (adaptasi dari kode yang diberikan)
+│   ├── tracker.py              # Modul tracking objek
+│   ├── counter.py              # Logic penghitungan kendaraan
+│   └── roi_manager.py          # Pengelolaan ROI dan line counter
+├── data/                       # Data storage
+│   ├── db/                     # Database
+│   │   ├── schema.sql          # Skema database SQLite
+│   │   └── db_manager.py       # Pengelolaan database
+│   └── models/                 # Model AI yang digunakan
+│       └── yolov5n.xml         # Model default
+├── ui/                         # User Interface
+│   ├── __init__.py
+│   ├── gui_app.py              # Aplikasi GUI utama
+│   ├── components/             # Komponen-komponen UI
+│   │   ├── __init__.py
+│   │   ├── main_window.py      # Window utama
+│   │   ├── stream_view.py      # Viewer stream video
+│   │   ├── control_panel.py    # Panel kontrol
+│   │   ├── preset_manager.py   # UI untuk manajemen preset
+│   │   └── roi_editor.py       # UI untuk mengedit ROI dan line counter
+│   └── resources/              # Resource UI (ikon, gambar, dll)
+├── cli/                        # Command Line Interface
+│   ├── __init__.py
+│   ├── cli_app.py              # Logic aplikasi CLI
+│   └── commands.py             # Definisi command-line commands
+├── api/                        # API untuk integrasi eksternal
+│   ├── __init__.py
+│   ├── server.py               # Server API sederhana
+│   └── endpoints.py            # Definisi API endpoints
+└── utils/                      # Utilities
+    ├── __init__.py
+    ├── video_sources.py        # Manajemen berbagai sumber video (RTSP, webcam, file)
+    ├── device_manager.py       # Manajemen device (CPU/GPU)
+    ├── preset_manager.py       # Pengelolaan preset konfigurasi
+    └── logger.py               # Logging system
+    whats
+Detail Komponen Utama
+
+Main Application (main.py):
+
+Entry point utama yang menentukan apakah aplikasi berjalan dalam mode GUI atau CLI
+Mengatur parsing argumen untuk menentukan mode aplikasi
+
+
+Core Components:
+
+detector.py: Mengadaptasi kode AsyncVehicleDetector yang sudah ada
+tracker.py: Implementasi algoritma tracking objek untuk konsistensi identifikasi kendaraan
+counter.py: Logic untuk menghitung kendaraan yang melewati ROI atau line
+roi_manager.py: Pengelolaan daerah ROI dan line counter untuk berbagai kebutuhan analisis
+
+
+Video Source Management (utils/video_sources.py):
+
+Abstraksi untuk berbagai sumber video (RTSP, webcam, file .mp4)
+Handler untuk setiap jenis sumber video dengan konfigurasi khusus
+
+
+Device Management (utils/device_manager.py):
+
+Logic untuk memilih dan mengoptimalkan penggunaan device (CPU/GPU)
+Implementasi fallback jika device yang diminta tidak tersedia
+
+
+Database Integration (data/db/db_manager.py):
+
+Koneksi dan manajemen database SQLite
+Fungsi untuk menyimpan data penghitungan
+Query untuk analisis data historis
+
+
+Preset Management (utils/preset_manager.py):
+
+Menyimpan dan memuat preset konfigurasi
+Validasi konfigurasi
+Konversi antara UI settings dan preset file
+
+
+GUI Application (ui/gui_app.py):
+
+Implementasi interface grafis
+Visualisasi real-time deteksi dan penghitungan
+Editor ROI dan line counter dengan interaksi mouse
+Panel pengaturan dan manajemen preset
+
+
+CLI Application (cli/cli_app.py):
+
+Interface command line yang menggunakan preset yang sudah dikonfigurasi via GUI
+Output penghitungan ke stdout atau file
+Opsi untuk menjalankan dalam mode headless
+
+
+API Server (api/server.py):
+
+Server API sederhana untuk menerima hasil penghitungan
+Endpoint untuk mengakses data historis
+Integrasi dengan sistem eksternal
+
+
+
+Alur Data
+
+Video source (RTSP/webcam/file) →
+Object detection (CPU/GPU) →
+Object tracking →
+Counting logic (ROI/line) →
+Visualization (GUI) dan/atau
+Storage (Database) dan/atau
+API output
+
+Konfigurasi dan Preset
+Format file preset (JSON) akan mencakup:
+json{
+  "source": {
+    "type": "rtsp|webcam|file",
+    "path": "url_or_filepath_or_device_id"
+  },
+  "detection": {
+    "model": "path_to_model.xml",
+    "device": "CPU|GPU",
+    "confidence": 0.5,
+    "nms_threshold": 0.4
+  },
+  "roi": {
+    "enabled": true,
+    "points": [[x1,y1], [x2,y2], ...],
+    "direction": "in_out|bidirectional"
+  },
+  "counting_lines": [
+    {
+      "name": "Line 1",
+      "points": [[x1,y1], [x2,y2]],
+      "direction": "north_south|east_west"
+    }
+  ],
+  "output": {
+    "save_video": false,
+    "output_path": "path/to/save",
+    "push_to_api": false,
+    "api_endpoint": "http://..."
+  },
+  "display": {
+    "show_counts": true,
+    "show_boxes": true,
+    "show_fps": true,
+    "show_roi": true
+  }
+}
+Alur Proses GUI vs CLI
+Mode GUI:
+
+User membuka aplikasi
+Mengkonfigurasi sumber video, model deteksi, device
+Menggambar ROI dan/atau Line Counter
+Menyimpan preset konfigurasi
+Menjalankan dan melihat hasil secara real-time
+Data tersimpan ke database lokal dan/atau API
+
+Mode CLI:
+
+User menjalankan dengan argumen preset yang sudah disimpan
+Aplikasi berjalan berdasarkan konfigurasi dalam preset
+Output hasil ke terminal atau file log
+Data tetap tersimpan ke database dan/atau API
+
+Struktur ini memberikan fleksibilitas, skalabilitas, dan pemisahan concerns yang baik antara komponen-komponen utama aplikasi. Arsitektur modular ini juga memungkinkan penambahan fitur baru dengan mudah di masa depan.
