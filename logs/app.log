@@ -255,3 +255,259 @@ Traceback (most recent call last):
     def update_ui(self):
     
 KeyboardInterrupt
+2025-05-18 20:25:11,068 |     INFO |                      root | logger.py:115 | Log directory: C:\Users\Hasbi Ash Shiddiqi\PycharmProjects\NanoDet\vehicle_counter\logs
+2025-05-18 20:25:11,069 |     INFO |                      root | start_debug.py:390 | MainWindow imported successfully in 0.27 seconds
+2025-05-18 20:25:11,069 |     INFO |                      root | start_debug.py:64 | MEMORY SNAPSHOT (after_mainwindow_import): RSS: N/A, VMS: N/A
+2025-05-18 20:25:11,070 |     INFO |                      root | start_debug.py:400 | Creating MainWindow instance...
+2025-05-18 20:25:11,072 |     INFO |      utils.preset_manager | preset_manager.py:73 | Loaded information for 2 presets
+2025-05-18 20:25:11,824 |     INFO |      utils.device_manager | device_manager.py:35 | OpenVINO version: 2025.1.0-18503-6fec06580ab-releases/2025/1
+2025-05-18 20:25:11,825 |     INFO |      utils.device_manager | device_manager.py:36 | Available devices: ['CPU', 'GPU']
+2025-05-18 20:25:11,847 |     INFO |      utils.preset_manager | preset_manager.py:73 | Loaded information for 2 presets
+2025-05-18 20:25:11,848 |     INFO | ui.components.main_window | main_window.py:131 | Main window initialized
+2025-05-18 20:25:11,855 |     INFO |                      root | start_debug.py:325 | Added video_processor_start method to MainWindow
+2025-05-18 20:25:11,855 |     INFO |                      root | start_debug.py:408 | MainWindow instance created successfully
+2025-05-18 20:25:11,856 |     INFO |                      root | start_debug.py:64 | MEMORY SNAPSHOT (after_mainwindow_create): RSS: N/A, VMS: N/A
+2025-05-18 20:25:11,902 |     INFO |                      root | start_debug.py:433 | MainWindow displayed
+2025-05-18 20:25:11,903 |     INFO |                      root | start_debug.py:64 | MEMORY SNAPSHOT (after_mainwindow_show): RSS: N/A, VMS: N/A
+2025-05-18 20:25:11,905 |     INFO |                      root | start_debug.py:270 | Debug toolbar added
+2025-05-18 20:25:11,905 |     INFO |                      root | start_debug.py:446 | Starting event loop...
+2025-05-18 20:25:16,103 |     INFO |      utils.preset_manager | preset_manager.py:166 | Loaded preset from C:/Users/Hasbi Ash Shiddiqi/PycharmProjects/NanoDet/vehicle_counter/config/presets/gasibu.json
+2025-05-18 20:25:18,981 |     INFO |                      root | main_window.py:827 | Starting video processing directly
+2025-05-18 20:25:18,989 |     INFO |          core.roi_manager | roi_manager.py:54 | ROI Manager initialized
+2025-05-18 20:25:28,318 |     INFO |              core.counter | counter.py:42 | Vehicle counter initialized
+2025-05-18 20:25:28,319 |     INFO |                      root | main_window.py:835 | VehicleCounterGUI instance created
+2025-05-18 20:25:28,340 |     INFO |              core.counter | counter.py:312 | Counter reset
+2025-05-18 20:25:28,341 |     INFO |                ui.gui_app | gui_app.py:522 | Connecting thread signals
+2025-05-18 20:25:28,341 |     INFO |                ui.gui_app | gui_app.py:530 | Connected frame_processed signal
+2025-05-18 20:25:28,341 |     INFO |                ui.gui_app | gui_app.py:536 | Connected processing_finished signal
+2025-05-18 20:25:28,342 |     INFO |                ui.gui_app | gui_app.py:542 | Connected error_occurred signal
+2025-05-18 20:25:28,342 |     INFO |                      root | main_window.py:851 | Video processing started successfully
+2025-05-18 20:25:28,367 |     INFO |                ui.gui_app | gui_app.py:117 | Starting frame processing loop
+2025-05-18 20:26:00,548 |     INFO |                      root | logger.py:115 | Log directory: C:\Users\Hasbi Ash Shiddiqi\PycharmProjects\NanoDet\vehicle_counter\logs
+2025-05-18 20:26:00,549 |     INFO |                      root | start_debug.py:390 | MainWindow imported successfully in 0.25 seconds
+2025-05-18 20:26:00,550 |     INFO |                      root | start_debug.py:64 | MEMORY SNAPSHOT (after_mainwindow_import): RSS: N/A, VMS: N/A
+2025-05-18 20:26:00,550 |     INFO |                      root | start_debug.py:400 | Creating MainWindow instance...
+2025-05-18 20:26:00,552 |     INFO |      utils.preset_manager | preset_manager.py:73 | Loaded information for 2 presets
+2025-05-18 20:26:01,294 |     INFO |      utils.device_manager | device_manager.py:35 | OpenVINO version: 2025.1.0-18503-6fec06580ab-releases/2025/1
+2025-05-18 20:26:01,295 |     INFO |      utils.device_manager | device_manager.py:36 | Available devices: ['CPU', 'GPU']
+2025-05-18 20:26:01,314 |     INFO |      utils.preset_manager | preset_manager.py:73 | Loaded information for 2 presets
+2025-05-18 20:26:01,316 |     INFO | ui.components.main_window | main_window.py:131 | Main window initialized
+2025-05-18 20:26:01,323 |     INFO |                      root | start_debug.py:325 | Added video_processor_start method to MainWindow
+2025-05-18 20:26:01,323 |     INFO |                      root | start_debug.py:408 | MainWindow instance created successfully
+2025-05-18 20:26:01,323 |     INFO |                      root | start_debug.py:64 | MEMORY SNAPSHOT (after_mainwindow_create): RSS: N/A, VMS: N/A
+2025-05-18 20:26:01,367 |     INFO |                      root | start_debug.py:433 | MainWindow displayed
+2025-05-18 20:26:01,369 |     INFO |                      root | start_debug.py:64 | MEMORY SNAPSHOT (after_mainwindow_show): RSS: N/A, VMS: N/A
+2025-05-18 20:26:01,370 |     INFO |                      root | start_debug.py:270 | Debug toolbar added
+2025-05-18 20:26:01,371 |     INFO |                      root | start_debug.py:446 | Starting event loop...
+2025-05-18 20:26:05,070 |     INFO |      utils.preset_manager | preset_manager.py:166 | Loaded preset from C:/Users/Hasbi Ash Shiddiqi/PycharmProjects/NanoDet/vehicle_counter/config/presets/gasibu.json
+2025-05-18 20:26:07,110 |     INFO |                      root | main_window.py:827 | Starting video processing directly
+2025-05-18 20:26:07,119 |     INFO |          core.roi_manager | roi_manager.py:54 | ROI Manager initialized
+2025-05-18 20:26:13,784 |     INFO |              core.counter | counter.py:42 | Vehicle counter initialized
+2025-05-18 20:26:13,785 |     INFO |                      root | main_window.py:835 | VehicleCounterGUI instance created
+2025-05-18 20:26:13,812 |     INFO |              core.counter | counter.py:312 | Counter reset
+2025-05-18 20:26:13,813 |     INFO |                ui.gui_app | gui_app.py:522 | Connecting thread signals
+2025-05-18 20:26:13,813 |     INFO |                ui.gui_app | gui_app.py:530 | Connected frame_processed signal
+2025-05-18 20:26:13,813 |     INFO |                ui.gui_app | gui_app.py:536 | Connected processing_finished signal
+2025-05-18 20:26:13,814 |     INFO |                ui.gui_app | gui_app.py:542 | Connected error_occurred signal
+2025-05-18 20:26:13,814 |     INFO |                      root | main_window.py:851 | Video processing started successfully
+2025-05-18 20:26:13,838 |     INFO |                ui.gui_app | gui_app.py:117 | Starting frame processing loop
+2025-05-18 20:26:22,569 |     INFO | ui.components.main_window | main_window.py:1024 | Processing stopped during window close
+2025-05-18 20:26:22,573 |     INFO |                ui.gui_app | gui_app.py:150 | Frame processing loop ended after 363 frames
+2025-05-18 20:26:22,619 |     INFO |                      root | start_debug.py:448 | Application exiting with code: 0
+2025-05-18 20:29:39,971 |     INFO |                      root | logger.py:115 | Log directory: C:\Users\Hasbi Ash Shiddiqi\PycharmProjects\NanoDet\vehicle_counter\logs
+2025-05-18 20:29:39,972 |     INFO |                      root | start_debug.py:390 | MainWindow imported successfully in 0.40 seconds
+2025-05-18 20:29:39,973 |     INFO |                      root | start_debug.py:64 | MEMORY SNAPSHOT (after_mainwindow_import): RSS: N/A, VMS: N/A
+2025-05-18 20:29:39,973 |     INFO |                      root | start_debug.py:400 | Creating MainWindow instance...
+2025-05-18 20:29:39,977 |     INFO |      utils.preset_manager | preset_manager.py:73 | Loaded information for 2 presets
+2025-05-18 20:29:39,979 | CRITICAL |                      root | start_debug.py:424 | Failed to create MainWindow: 'VideoStreamView' object has no attribute 'debug_mode'
+Traceback (most recent call last):
+  File "C:\Users\Hasbi Ash Shiddiqi\PycharmProjects\NanoDet\vehicle_counter\start_debug.py", line 403, in start_application
+    window = MainWindow()
+             ^^^^^^^^^^^^
+  File "C:\Users\Hasbi Ash Shiddiqi\PycharmProjects\NanoDet\vehicle_counter\ui\components\main_window.py", line 122, in __init__
+    self.init_ui()
+  File "C:\Users\Hasbi Ash Shiddiqi\PycharmProjects\NanoDet\vehicle_counter\ui\components\main_window.py", line 140, in init_ui
+    self.setup_central_widget()
+  File "C:\Users\Hasbi Ash Shiddiqi\PycharmProjects\NanoDet\vehicle_counter\ui\components\main_window.py", line 161, in setup_central_widget
+    self.stream_view = VideoStreamView()
+                       ^^^^^^^^^^^^^^^^^
+  File "C:\Users\Hasbi Ash Shiddiqi\PycharmProjects\NanoDet\vehicle_counter\ui\components\stream_view.py", line 47, in __init__
+    self.init_ui()
+  File "C:\Users\Hasbi Ash Shiddiqi\PycharmProjects\NanoDet\vehicle_counter\ui\components\stream_view.py", line 95, in init_ui
+    self.debug_label.setVisible(self.debug_mode)
+                                ^^^^^^^^^^^^^^^
+AttributeError: 'VideoStreamView' object has no attribute 'debug_mode'. Did you mean: 'debug_label'?
+2025-05-18 20:33:40,535 |     INFO |                      root | logger.py:115 | Log directory: C:\Users\Hasbi Ash Shiddiqi\PycharmProjects\NanoDet\vehicle_counter\logs
+2025-05-18 20:33:40,536 |     INFO |                      root | start_debug.py:390 | MainWindow imported successfully in 0.35 seconds
+2025-05-18 20:33:40,537 |     INFO |                      root | start_debug.py:64 | MEMORY SNAPSHOT (after_mainwindow_import): RSS: N/A, VMS: N/A
+2025-05-18 20:33:40,538 |     INFO |                      root | start_debug.py:400 | Creating MainWindow instance...
+2025-05-18 20:33:40,540 |     INFO |      utils.preset_manager | preset_manager.py:73 | Loaded information for 2 presets
+2025-05-18 20:33:41,578 |     INFO |      utils.device_manager | device_manager.py:35 | OpenVINO version: 2025.1.0-18503-6fec06580ab-releases/2025/1
+2025-05-18 20:33:41,578 |     INFO |      utils.device_manager | device_manager.py:36 | Available devices: ['CPU', 'GPU']
+2025-05-18 20:33:41,605 |     INFO |      utils.preset_manager | preset_manager.py:73 | Loaded information for 2 presets
+2025-05-18 20:33:41,607 |     INFO | ui.components.main_window | main_window.py:131 | Main window initialized
+2025-05-18 20:33:41,623 |     INFO |                      root | start_debug.py:325 | Added video_processor_start method to MainWindow
+2025-05-18 20:33:41,623 |     INFO |                      root | start_debug.py:408 | MainWindow instance created successfully
+2025-05-18 20:33:41,624 |     INFO |                      root | start_debug.py:64 | MEMORY SNAPSHOT (after_mainwindow_create): RSS: N/A, VMS: N/A
+2025-05-18 20:33:41,673 |     INFO |                      root | start_debug.py:433 | MainWindow displayed
+2025-05-18 20:33:41,675 |     INFO |                      root | start_debug.py:64 | MEMORY SNAPSHOT (after_mainwindow_show): RSS: N/A, VMS: N/A
+2025-05-18 20:33:41,677 |     INFO |                      root | start_debug.py:270 | Debug toolbar added
+2025-05-18 20:33:41,678 |     INFO |                      root | start_debug.py:446 | Starting event loop...
+2025-05-18 20:33:44,983 |     INFO |      utils.preset_manager | preset_manager.py:166 | Loaded preset from C:/Users/Hasbi Ash Shiddiqi/PycharmProjects/NanoDet/vehicle_counter/config/presets/gasibu.json
+2025-05-18 20:33:46,709 |     INFO |                      root | main_window.py:825 | Using MainWindow.video_processor_start
+2025-05-18 20:33:46,709 |     INFO |                      root | start_debug.py:294 | Starting video processing
+2025-05-18 20:33:46,710 |    ERROR |                      root | start_debug.py:317 | Error in video_processor_start: 'NoneType' object has no attribute 'change_source'
+2025-05-18 20:33:54,523 |     INFO |                      root | main_window.py:834 | Video processing initiated
+2025-05-18 20:47:07,316 |     INFO |                      root | logger.py:115 | Log directory: C:\Users\Hasbi Ash Shiddiqi\PycharmProjects\NanoDet\vehicle_counter\logs
+2025-05-18 20:47:07,322 |     INFO |                      root | start_debug.py:390 | MainWindow imported successfully in 0.36 seconds
+2025-05-18 20:47:07,323 |     INFO |                      root | start_debug.py:64 | MEMORY SNAPSHOT (after_mainwindow_import): RSS: N/A, VMS: N/A
+2025-05-18 20:47:07,323 |     INFO |                      root | start_debug.py:400 | Creating MainWindow instance...
+2025-05-18 20:47:07,325 |     INFO |      utils.preset_manager | preset_manager.py:73 | Loaded information for 2 presets
+2025-05-18 20:47:08,466 |     INFO |      utils.device_manager | device_manager.py:35 | OpenVINO version: 2025.1.0-18503-6fec06580ab-releases/2025/1
+2025-05-18 20:47:08,467 |     INFO |      utils.device_manager | device_manager.py:36 | Available devices: ['CPU', 'GPU']
+2025-05-18 20:47:08,498 |     INFO |      utils.preset_manager | preset_manager.py:73 | Loaded information for 2 presets
+2025-05-18 20:47:08,500 |     INFO | ui.components.main_window | main_window.py:140 | Main window initialized
+2025-05-18 20:47:08,508 |     INFO |                      root | start_debug.py:325 | Added video_processor_start method to MainWindow
+2025-05-18 20:47:08,509 |     INFO |                      root | start_debug.py:408 | MainWindow instance created successfully
+2025-05-18 20:47:08,509 |     INFO |                      root | start_debug.py:64 | MEMORY SNAPSHOT (after_mainwindow_create): RSS: N/A, VMS: N/A
+2025-05-18 20:47:08,566 |     INFO |                      root | start_debug.py:433 | MainWindow displayed
+2025-05-18 20:47:08,567 |     INFO |                      root | start_debug.py:64 | MEMORY SNAPSHOT (after_mainwindow_show): RSS: N/A, VMS: N/A
+2025-05-18 20:47:08,570 |     INFO |                      root | start_debug.py:270 | Debug toolbar added
+2025-05-18 20:47:08,570 |     INFO |                      root | start_debug.py:446 | Starting event loop...
+2025-05-18 20:47:12,319 |     INFO |      utils.preset_manager | preset_manager.py:166 | Loaded preset from C:/Users/Hasbi Ash Shiddiqi/PycharmProjects/NanoDet/vehicle_counter/config/presets/gasibu.json
+2025-05-18 20:47:14,563 |     INFO |                      root | main_window.py:834 | Using MainWindow.video_processor_start
+2025-05-18 20:47:14,564 |     INFO |                      root | start_debug.py:294 | Starting video processing
+2025-05-18 20:47:14,567 |    ERROR |                      root | start_debug.py:317 | Error in video_processor_start: 'NoneType' object has no attribute 'change_source'
+2025-05-18 20:47:23,494 |     INFO |                      root | main_window.py:843 | Video processing initiated
+2025-05-18 20:50:09,903 |     INFO |                      root | logger.py:115 | Log directory: C:\Users\Hasbi Ash Shiddiqi\PycharmProjects\NanoDet\vehicle_counter\logs
+2025-05-18 20:50:09,905 |     INFO |                      root | start_debug.py:417 | MainWindow imported successfully in 0.24 seconds
+2025-05-18 20:50:09,905 |     INFO |                      root | start_debug.py:64 | MEMORY SNAPSHOT (after_mainwindow_import): RSS: N/A, VMS: N/A
+2025-05-18 20:50:09,906 |     INFO |                      root | start_debug.py:427 | Creating MainWindow instance...
+2025-05-18 20:50:09,908 |     INFO |      utils.preset_manager | preset_manager.py:73 | Loaded information for 2 presets
+2025-05-18 20:50:10,790 |     INFO |      utils.device_manager | device_manager.py:35 | OpenVINO version: 2025.1.0-18503-6fec06580ab-releases/2025/1
+2025-05-18 20:50:10,790 |     INFO |      utils.device_manager | device_manager.py:36 | Available devices: ['CPU', 'GPU']
+2025-05-18 20:50:10,818 |     INFO |      utils.preset_manager | preset_manager.py:73 | Loaded information for 2 presets
+2025-05-18 20:50:10,819 |     INFO | ui.components.main_window | main_window.py:140 | Main window initialized
+2025-05-18 20:50:10,826 |     INFO |                      root | start_debug.py:352 | Added video_processor_start method to MainWindow
+2025-05-18 20:50:10,827 |     INFO |                      root | start_debug.py:435 | MainWindow instance created successfully
+2025-05-18 20:50:10,827 |     INFO |                      root | start_debug.py:64 | MEMORY SNAPSHOT (after_mainwindow_create): RSS: N/A, VMS: N/A
+2025-05-18 20:50:10,879 |     INFO |                      root | start_debug.py:460 | MainWindow displayed
+2025-05-18 20:50:10,880 |     INFO |                      root | start_debug.py:64 | MEMORY SNAPSHOT (after_mainwindow_show): RSS: N/A, VMS: N/A
+2025-05-18 20:50:10,881 |     INFO |                      root | start_debug.py:270 | Debug toolbar added
+2025-05-18 20:50:10,881 |     INFO |                      root | start_debug.py:473 | Starting event loop...
+2025-05-18 20:50:14,376 |     INFO |      utils.preset_manager | preset_manager.py:166 | Loaded preset from C:/Users/Hasbi Ash Shiddiqi/PycharmProjects/NanoDet/vehicle_counter/config/presets/gasibu.json
+2025-05-18 20:50:17,342 |     INFO |                      root | main_window.py:834 | Using MainWindow.video_processor_start
+2025-05-18 20:50:17,343 |     INFO |                      root | start_debug.py:294 | Starting video processing
+2025-05-18 20:50:17,344 |     INFO |                      root | start_debug.py:301 | Source type: file, path: C:/Users/Hasbi Ash Shiddiqi/Downloads/sample.mp4
+2025-05-18 20:50:17,361 |     INFO |          core.roi_manager | roi_manager.py:54 | ROI Manager initialized
+2025-05-18 20:50:27,238 |     INFO |              core.counter | counter.py:42 | Vehicle counter initialized
+2025-05-18 20:50:27,239 |     INFO |                      root | start_debug.py:307 | VehicleCounterGUI created
+2025-05-18 20:50:27,240 |    ERROR |                      root | start_debug.py:314 | Error connecting processor to stream view: 'MainWindow' object has no attribute '_connect_processor_to_stream_view'
+2025-05-18 20:50:27,271 |     INFO |                      root | start_debug.py:329 | Successfully opened video source: C:/Users/Hasbi Ash Shiddiqi/Downloads/sample.mp4
+2025-05-18 20:50:27,291 |     INFO |              core.counter | counter.py:312 | Counter reset
+2025-05-18 20:50:27,291 |     INFO |                ui.gui_app | gui_app.py:522 | Connecting thread signals
+2025-05-18 20:50:27,292 |     INFO |                ui.gui_app | gui_app.py:530 | Connected frame_processed signal
+2025-05-18 20:50:27,292 |     INFO |                ui.gui_app | gui_app.py:536 | Connected processing_finished signal
+2025-05-18 20:50:27,292 |     INFO |                ui.gui_app | gui_app.py:542 | Connected error_occurred signal
+2025-05-18 20:50:27,292 |     INFO |                      root | start_debug.py:340 | Video processing started successfully
+2025-05-18 20:50:27,295 |     INFO |                      root | main_window.py:843 | Video processing initiated
+2025-05-18 20:50:27,321 |     INFO |                ui.gui_app | gui_app.py:117 | Starting frame processing loop
+2025-05-18 20:50:53,055 |     INFO |                      root | main_window.py:834 | Using MainWindow.video_processor_start
+2025-05-18 20:50:53,056 |     INFO |                      root | start_debug.py:294 | Starting video processing
+2025-05-18 20:50:53,057 |     INFO |                      root | start_debug.py:301 | Source type: file, path: C:/Users/Hasbi Ash Shiddiqi/Downloads/sample.mp4
+2025-05-18 20:50:53,081 |     INFO |                      root | start_debug.py:329 | Successfully opened video source: C:/Users/Hasbi Ash Shiddiqi/Downloads/sample.mp4
+2025-05-18 20:50:53,302 |  WARNING |                ui.gui_app | gui_app.py:127 | Failed to read frame or end of video
+2025-05-18 20:50:53,303 |     INFO |                ui.gui_app | gui_app.py:150 | Frame processing loop ended after 969 frames
+2025-05-18 20:50:53,304 |     INFO |              core.counter | counter.py:312 | Counter reset
+2025-05-18 20:50:53,305 |     INFO |                ui.gui_app | gui_app.py:522 | Connecting thread signals
+2025-05-18 20:50:53,306 |     INFO |                ui.gui_app | gui_app.py:530 | Connected frame_processed signal
+2025-05-18 20:50:53,306 |     INFO |                ui.gui_app | gui_app.py:536 | Connected processing_finished signal
+2025-05-18 20:50:53,307 |     INFO |                ui.gui_app | gui_app.py:542 | Connected error_occurred signal
+2025-05-18 20:50:53,308 |     INFO |                      root | start_debug.py:340 | Video processing started successfully
+2025-05-18 20:50:53,313 |     INFO |                      root | main_window.py:843 | Video processing initiated
+2025-05-18 20:50:53,330 |     INFO |                ui.gui_app | gui_app.py:117 | Starting frame processing loop
+2025-05-18 20:50:57,829 | CRITICAL |                      root | start_debug.py:278 | Unhandled exception:
+Traceback (most recent call last):
+  File "C:\Users\Hasbi Ash Shiddiqi\PycharmProjects\NanoDet\vehicle_counter\ui\gui_app.py", line 422, in update_ui
+    def update_ui(self):
+    
+KeyboardInterrupt
+2025-05-18 20:54:27,449 |     INFO |                      root | logger.py:115 | Log directory: C:\Users\Hasbi Ash Shiddiqi\PycharmProjects\NanoDet\vehicle_counter\logs
+2025-05-18 20:54:27,451 |     INFO |                      root | start_debug.py:456 | MainWindow imported successfully in 0.25 seconds
+2025-05-18 20:54:27,451 |     INFO |                      root | start_debug.py:64 | MEMORY SNAPSHOT (after_mainwindow_import): RSS: N/A, VMS: N/A
+2025-05-18 20:54:27,451 |     INFO |                      root | start_debug.py:466 | Creating MainWindow instance...
+2025-05-18 20:54:27,454 |     INFO |      utils.preset_manager | preset_manager.py:73 | Loaded information for 2 presets
+2025-05-18 20:54:28,243 |     INFO |      utils.device_manager | device_manager.py:35 | OpenVINO version: 2025.1.0-18503-6fec06580ab-releases/2025/1
+2025-05-18 20:54:28,243 |     INFO |      utils.device_manager | device_manager.py:36 | Available devices: ['CPU', 'GPU']
+2025-05-18 20:54:28,264 |     INFO |      utils.preset_manager | preset_manager.py:73 | Loaded information for 2 presets
+2025-05-18 20:54:28,265 |     INFO | ui.components.main_window | main_window.py:140 | Main window initialized
+2025-05-18 20:54:28,273 |     INFO |                      root | start_debug.py:391 | Added video_processor_start method to MainWindow
+2025-05-18 20:54:28,273 |     INFO |                      root | start_debug.py:474 | MainWindow instance created successfully
+2025-05-18 20:54:28,273 |     INFO |                      root | start_debug.py:64 | MEMORY SNAPSHOT (after_mainwindow_create): RSS: N/A, VMS: N/A
+2025-05-18 20:54:28,298 |     INFO |                      root | start_debug.py:499 | MainWindow displayed
+2025-05-18 20:54:28,299 |     INFO |                      root | start_debug.py:64 | MEMORY SNAPSHOT (after_mainwindow_show): RSS: N/A, VMS: N/A
+2025-05-18 20:54:28,300 |     INFO |                      root | start_debug.py:270 | Debug toolbar added
+2025-05-18 20:54:28,300 |     INFO |                      root | start_debug.py:512 | Starting event loop...
+2025-05-18 20:54:39,295 |     INFO |      utils.preset_manager | preset_manager.py:166 | Loaded preset from C:/Users/Hasbi Ash Shiddiqi/PycharmProjects/NanoDet/vehicle_counter/config/presets/gasibu.json
+2025-05-18 20:54:41,591 |     INFO |                      root | main_window.py:834 | Using MainWindow.video_processor_start
+2025-05-18 20:54:41,592 |     INFO |                      root | start_debug.py:294 | Starting video processing
+2025-05-18 20:54:41,592 |     INFO |                      root | start_debug.py:301 | Source type: file, path: C:/Users/Hasbi Ash Shiddiqi/Downloads/sample.mp4
+2025-05-18 20:54:41,600 |     INFO |          core.roi_manager | roi_manager.py:54 | ROI Manager initialized
+2025-05-18 20:54:49,695 |     INFO |              core.counter | counter.py:42 | Vehicle counter initialized
+2025-05-18 20:54:49,696 |     INFO |                      root | start_debug.py:307 | VehicleCounterGUI created
+2025-05-18 20:54:49,697 |    ERROR |                      root | start_debug.py:314 | Error connecting processor to stream view: 'MainWindow' object has no attribute '_connect_processor_to_stream_view'
+2025-05-18 20:54:49,734 |     INFO |                      root | start_debug.py:329 | Successfully opened video source: C:/Users/Hasbi Ash Shiddiqi/Downloads/sample.mp4
+2025-05-18 20:54:49,759 |     INFO |              core.counter | counter.py:312 | Counter reset
+2025-05-18 20:54:49,760 |     INFO |                ui.gui_app | gui_app.py:522 | Connecting thread signals
+2025-05-18 20:54:49,760 |     INFO |                ui.gui_app | gui_app.py:530 | Connected frame_processed signal
+2025-05-18 20:54:49,760 |     INFO |                ui.gui_app | gui_app.py:536 | Connected processing_finished signal
+2025-05-18 20:54:49,761 |     INFO |                ui.gui_app | gui_app.py:542 | Connected error_occurred signal
+2025-05-18 20:54:49,761 |     INFO |                      root | start_debug.py:340 | Video processing started successfully
+2025-05-18 20:54:49,766 |    ERROR |                      root | start_debug.py:346 | Error in video_processor_start: 'MainWindow' object has no attribute '_connect_processor_signals'
+2025-05-18 20:54:49,799 |     INFO |                ui.gui_app | gui_app.py:117 | Starting frame processing loop
+2025-05-18 20:54:53,505 |     INFO |                      root | main_window.py:843 | Video processing initiated
+2025-05-18 20:54:55,159 | CRITICAL |                      root | start_debug.py:278 | Unhandled exception:
+Traceback (most recent call last):
+  File "C:\Users\Hasbi Ash Shiddiqi\PycharmProjects\NanoDet\vehicle_counter\ui\gui_app.py", line 422, in update_ui
+    def update_ui(self):
+    
+KeyboardInterrupt
+2025-05-18 20:56:36,437 |     INFO |                      root | logger.py:115 | Log directory: C:\Users\Hasbi Ash Shiddiqi\PycharmProjects\NanoDet\vehicle_counter\logs
+2025-05-18 20:56:36,438 |     INFO |                      root | start_debug.py:455 | MainWindow imported successfully in 0.26 seconds
+2025-05-18 20:56:36,439 |     INFO |                      root | start_debug.py:64 | MEMORY SNAPSHOT (after_mainwindow_import): RSS: N/A, VMS: N/A
+2025-05-18 20:56:36,439 |     INFO |                      root | start_debug.py:465 | Creating MainWindow instance...
+2025-05-18 20:56:36,442 |     INFO |      utils.preset_manager | preset_manager.py:73 | Loaded information for 2 presets
+2025-05-18 20:56:37,308 |     INFO |      utils.device_manager | device_manager.py:35 | OpenVINO version: 2025.1.0-18503-6fec06580ab-releases/2025/1
+2025-05-18 20:56:37,308 |     INFO |      utils.device_manager | device_manager.py:36 | Available devices: ['CPU', 'GPU']
+2025-05-18 20:56:37,330 |     INFO |      utils.preset_manager | preset_manager.py:73 | Loaded information for 2 presets
+2025-05-18 20:56:37,332 |     INFO | ui.components.main_window | main_window.py:140 | Main window initialized
+2025-05-18 20:56:37,339 |     INFO |                      root | start_debug.py:390 | Added video_processor_start method to MainWindow
+2025-05-18 20:56:37,339 |     INFO |                      root | start_debug.py:473 | MainWindow instance created successfully
+2025-05-18 20:56:37,340 |     INFO |                      root | start_debug.py:64 | MEMORY SNAPSHOT (after_mainwindow_create): RSS: N/A, VMS: N/A
+2025-05-18 20:56:37,384 |     INFO |                      root | start_debug.py:498 | MainWindow displayed
+2025-05-18 20:56:37,385 |     INFO |                      root | start_debug.py:64 | MEMORY SNAPSHOT (after_mainwindow_show): RSS: N/A, VMS: N/A
+2025-05-18 20:56:37,386 |     INFO |                      root | start_debug.py:270 | Debug toolbar added
+2025-05-18 20:56:37,387 |     INFO |                      root | start_debug.py:511 | Starting event loop...
+2025-05-18 20:56:41,439 |     INFO |      utils.preset_manager | preset_manager.py:166 | Loaded preset from C:/Users/Hasbi Ash Shiddiqi/PycharmProjects/NanoDet/vehicle_counter/config/presets/gasibu.json
+2025-05-18 20:56:43,886 |     INFO |                      root | main_window.py:834 | Using MainWindow.video_processor_start
+2025-05-18 20:56:43,887 |     INFO |                      root | start_debug.py:294 | Starting video processing
+2025-05-18 20:56:43,887 |     INFO |                      root | start_debug.py:301 | Source type: file, path: C:/Users/Hasbi Ash Shiddiqi/Downloads/sample.mp4
+2025-05-18 20:56:43,897 |     INFO |          core.roi_manager | roi_manager.py:54 | ROI Manager initialized
+2025-05-18 20:56:53,218 |     INFO |              core.counter | counter.py:42 | Vehicle counter initialized
+2025-05-18 20:56:53,219 |     INFO |                      root | start_debug.py:307 | VehicleCounterGUI created
+2025-05-18 20:56:53,219 |    ERROR |                      root | start_debug.py:314 | Error connecting processor to stream view: 'MainWindow' object has no attribute '_connect_processor_to_stream_view'
+2025-05-18 20:56:53,253 |     INFO |                      root | start_debug.py:329 | Successfully opened video source: C:/Users/Hasbi Ash Shiddiqi/Downloads/sample.mp4
+2025-05-18 20:56:53,277 |     INFO |              core.counter | counter.py:312 | Counter reset
+2025-05-18 20:56:53,278 |     INFO |                ui.gui_app | gui_app.py:522 | Connecting thread signals
+2025-05-18 20:56:53,279 |     INFO |                ui.gui_app | gui_app.py:530 | Connected frame_processed signal
+2025-05-18 20:56:53,279 |     INFO |                ui.gui_app | gui_app.py:536 | Connected processing_finished signal
+2025-05-18 20:56:53,280 |     INFO |                ui.gui_app | gui_app.py:542 | Connected error_occurred signal
+2025-05-18 20:56:53,280 |     INFO |                      root | start_debug.py:340 | Video processing started successfully
+2025-05-18 20:56:53,283 |     INFO |                      root | main_window.py:843 | Video processing initiated
+2025-05-18 20:56:53,316 |     INFO |                ui.gui_app | gui_app.py:117 | Starting frame processing loop
+2025-05-18 20:57:07,083 | CRITICAL |                      root | start_debug.py:278 | Unhandled exception:
+Traceback (most recent call last):
+  File "C:\Users\Hasbi Ash Shiddiqi\PycharmProjects\NanoDet\vehicle_counter\ui\gui_app.py", line 422, in update_ui
+    def update_ui(self):
+    
+KeyboardInterrupt

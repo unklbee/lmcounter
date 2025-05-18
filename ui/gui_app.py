@@ -695,7 +695,53 @@ class VehicleCounterGUI(QMainWindow):
 
     def run(self):
         """Show the window and start the application"""
-        self.show()
+        try:
+            # Tambahkan check diagnostik
+            logger.info("VehicleCounterGUI.run - Checking components")
+
+            # Verifikasi video source
+            if hasattr(self, 'video_source') and self.video_source:
+                if self.video_source.is_opened:
+                    logger.info(f"Video source is open: {self.video_source.source_path}")
+
+                    # Test baca frame
+                    ret, test_frame = self.video_source.read()
+                    if ret and test_frame is not None:
+                        h, w, c = test_frame.shape
+                        logger.info(f"Successfully read test frame: {w}x{h}")
+
+                        # Reset position untuk video file
+                        if hasattr(self.video_source, 'cap'):
+                            self.video_source.cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                    else:
+                        logger.error("Failed to read test frame from source")
+                else:
+                    logger.error("Video source is not open")
+            else:
+                logger.info("No video source set yet")
+
+            # Verifikasi stream view
+            if hasattr(self, 'stream_view'):
+                logger.info("Stream view is initialized")
+
+                # Aktifkan debug mode
+                if hasattr(self.stream_view, 'toggle_debug'):
+                    self.stream_view.debug_mode = True
+                    self.stream_view.debug_label.setVisible(True)
+                    logger.info("Debug mode enabled in stream view")
+            else:
+                logger.error("Stream view not initialized")
+
+            # Show window
+            self.show()
+            logger.info("VehicleCounterGUI window shown")
+
+        except Exception as e:
+            logger.error(f"Error in VehicleCounterGUI.run: {str(e)}")
+            logger.debug(traceback.format_exc())
+
+            # Show window anyway
+            self.show()
 
     def closeEvent(self, event):
         """Handle window close event"""

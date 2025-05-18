@@ -32,6 +32,10 @@ from config.settings import VERSION
 # Setup logger
 logger = get_logger(__name__)
 
+try:
+    from direct_video_display import DirectVideoDisplay
+except ImportError:
+    logging.error("Failed to import DirectVideoDisplay - make sure direct_video_display.py is in project root")
 
 class AboutDialog(QDialog):
     """About dialog for the application"""
@@ -40,6 +44,11 @@ class AboutDialog(QDialog):
         """Initialize about dialog"""
         super().__init__(parent)
         self.init_ui()
+
+        try:
+            self.setup_debug_tools()
+        except Exception as e:
+            logging.error(f"Failed to setup debug tools: {e}")
 
     def init_ui(self):
         """Initialize dialog UI"""
@@ -812,11 +821,36 @@ class MainWindow(QMainWindow):
 
         try:
             # 1) Update UI
-            self.statusBar.showMessage("Processing started")
-            self.control_panel.set_processing_state(True)
+            self.statusBar.showMessage("Starting video processing...")
 
-            # 2) Start video processing
-            self.start_video_processor()
+            # Enable debug mode in StreamView jika ada
+            if hasattr(self, 'stream_view') and hasattr(self.stream_view, 'toggle_debug'):
+                self.stream_view.debug_mode = True
+                self.stream_view.debug_label.setVisible(True)
+                self.stream_view.debug_label.setText("Initializing video processing...")
+
+            # 2) Metode satu - langsung gunakan video processor dari MainWindow
+            if hasattr(self, 'video_processor_start'):
+                logging.info("Using MainWindow.video_processor_start")
+                # Metode ini menghubungkan processor langsung ke MainWindow.stream_view
+                self.video_processor_start()
+            else:
+                # 3) Metode dua - lewat control panel
+                logging.info("Using control_panel.start_clicked")
+                self.control_panel.set_processing_state(True)
+                self.control_panel.start_clicked.emit()
+
+            logging.info("Video processing initiated")
+
+        except Exception as e:
+            logging.error(f"Error starting processing: {str(e)}")
+            traceback.print_exc()
+            self.statusBar.showMessage(f"Error: {str(e)}")
+
+            # Tampilkan pesan error di stream view jika ada
+            if hasattr(self, 'stream_view') and hasattr(self.stream_view, 'debug_label'):
+                self.stream_view.debug_label.setText(f"Error: {str(e)}")
+                self.stream_view.debug_label.setVisible(True)
 
         finally:
             del self._in_start_processing
@@ -1033,3 +1067,109 @@ class MainWindow(QMainWindow):
         """
         return (hasattr(self.control_panel, 'processing_active') and
                 self.control_panel.processing_active)
+
+
+
+    def setup_debug_tools(self):
+        """Setup alat debug tambahan di MainWindow"""
+        logging.info("Setting up debug tools in MainWindow")
+
+        try:
+            # Buat menu Debug jika belum ada
+            menu_bar = self.menuBar()
+            debug_menu = None
+
+            # Cari menu Debug yang sudah ada
+            for i in range(menu_bar.count()):
+                menu = menu_bar.menuAt(i)
+                if menu.title() == "Debug":
+                    debug_menu = menu
+                    break
+
+            # Buat menu Debug jika belum ada
+            if debug_menu is None:
+                debug_menu = menu_bar.addMenu("Debug")
+                logging.info("Created Debug menu")
+
+            # Tambahkan aksi untuk direct video display
+            direct_video_action = QAction("Direct Video Display", self)
+            direct_video_action.setCheckable(True)
+            direct_video_action.triggered.connect(self.toggle_direct_video)
+            debug_menu.addAction(direct_video_action)
+
+            # Tambahkan aksi untuk toggle debug mode di stream view
+            if hasattr(self, 'stream_view') and hasattr(self.stream_view, 'toggle_debug'):
+                toggle_debug_action = QAction("Toggle Debug Info", self)
+                toggle_debug_action.triggered.connect(self.stream_view.toggle_debug)
+                debug_menu.addAction(toggle_debug_action)
+
+            # Inisialisasi DirectVideoDisplay
+            self._direct_video_display = DirectVideoDisplay(self)
+            if hasattr(self.statusBar, 'showMessage'):
+                self._direct_video_display.status_updated.connect(self.statusBar.showMessage)
+
+            logging.info("Debug tools setup complete")
+        except Exception as e:
+            logging.error(f"Error setting up debug tools: {str(e)}")
+            import traceback
+            logging.debug(traceback.format_exc())
+
+    def toggle_direct_video(self):
+        """Toggle direct video display mode"""
+        if not hasattr(self, '_direct_video_display'):
+            logging.error("DirectVideoDisplay not initialized")
+            QMessageBox.warning(self, "Error", "DirectVideoDisplay not initialized")
+            return
+
+        # Get source from control panel
+        try:
+            if hasattr(self, '_video_processor') and hasattr(self._video_processor, 'video_source'):
+                # Video source dari processor
+                video_source = self._video_processor.video_source
+            else:
+                # Coba dari control panel
+                source_type = self.control_panel.source_type_combo.currentData()
+                source_path = self.control_panel.source_path_edit.text()
+                options = {}
+
+                # Import create_video_source
+                from utils.video_sources import create_video_source
+
+                # Buat video source
+                video_source = create_video_source(source_type, source_path, **options)
+
+                # Buka video source
+                if not video_source.open():
+                    QMessageBox.warning(self, "Error", "Failed to open video source")
+                    return
+
+            # Stop processor yang sedang berjalan
+            if hasattr(self, '_video_processor') and hasattr(self._video_processor, 'stop_processing'):
+                logging.info("Stopping existing processor")
+                self._video_processor.stop_processing()
+
+            # Setup direct video display
+            logging.info(f"Setting up direct video with source: {video_source.source_path}")
+            self._direct_video_display.setup(video_source, self.stream_view)
+
+            # Toggle status
+            sender = self.sender()
+            if sender.isChecked():
+                # Start direct video
+                if self._direct_video_display.start():
+                    logging.info("Direct video display started")
+                    self.statusBar.showMessage("Direct video mode - processing disabled")
+                else:
+                    sender.setChecked(False)
+                    logging.error("Failed to start direct video display")
+            else:
+                # Stop direct video
+                self._direct_video_display.stop()
+                logging.info("Direct video display stopped")
+                self.statusBar.showMessage("Direct video mode disabled")
+
+        except Exception as e:
+            logging.error(f"Error in toggle_direct_video: {str(e)}")
+            import traceback
+            logging.debug(traceback.format_exc())
+            QMessageBox.warning(self, "Error", f"Failed to toggle direct video: {str(e)}")

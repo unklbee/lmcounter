@@ -293,22 +293,50 @@ class DebugToolsInitializer:
                 try:
                     logging.info("Starting video processing")
 
-                    # Create processor if it doesn't exist
-                    if not hasattr(self, '_video_processor'):
-                        self._video_processor = VehicleCounterGUI()
-                        logging.info("VehicleCounterGUI created")
-
                     # Get source configuration from control panel
                     source_type = self.control_panel.source_type_combo.currentData()
                     source_path = self.control_panel.source_path_edit.text()
                     options = {}
 
-                    # Configure the video processor
-                    self._video_processor.change_source(source_type, source_path, options)
+                    logging.info(f"Source type: {source_type}, path: {source_path}")
+
+                    # Buat video processor jika belum ada
+                    if not hasattr(self, '_video_processor') or self._video_processor is None:
+                        from ui.gui_app import VehicleCounterGUI
+                        self._video_processor = VehicleCounterGUI()
+                        logging.info("VehicleCounterGUI created")
+
+                        # Connect processor frame signal ke main window stream view
+                        try:
+                            # Hubungkan langsung ke stream view
+                            self._connect_processor_to_stream_view()
+                        except Exception as e:
+                            logging.error(f"Error connecting processor to stream view: {str(e)}")
+                            import traceback
+                            logging.debug(traceback.format_exc())
+
+                    # Configure video source first
+                    try:
+                        # Coba buat video source secara terpisah dulu
+                        from utils.video_sources import create_video_source
+                        video_source = create_video_source(source_type, source_path, **options)
+
+                        # Buka source untuk memastikan bisa dibuka
+                        if not video_source.open():
+                            logging.error(f"Failed to open video source: {source_path}")
+                            raise Exception(f"Failed to open video source: {source_path}")
+
+                        logging.info(f"Successfully opened video source: {source_path}")
+
+                        # Sekarang konfigurasi di video processor
+                        self._video_processor.change_source(source_type, source_path, options)
+
+                    except Exception as e:
+                        logging.error(f"Error configuring video source: {str(e)}")
+                        raise
 
                     # Start processing
                     self._video_processor.start_processing()
-
                     logging.info("Video processing started successfully")
 
                 except Exception as e:
@@ -316,8 +344,45 @@ class DebugToolsInitializer:
                     traceback.print_exc()
                     logging.error(f"Error in video_processor_start: {str(e)}")
                     from PyQt5.QtWidgets import QMessageBox
-                    QMessageBox.critical(self, "Processing Error",
-                                         f"Failed to start video processing: {str(e)}")
+                    QMessageBox.critical(self, "Processing Error", f"Failed to start video processing: {str(e)}")
+
+            def _connect_processor_signals(self):
+                """Connect processor signals ke stream view"""
+                try:
+                    # Pastikan processor dan stream view ada
+                    if not hasattr(self, '_video_processor') or not hasattr(self, 'stream_view'):
+                        logging.error("Missing video processor or stream view")
+                        return
+
+                    # Pastikan processing thread sudah dibuat
+                    if not hasattr(self._video_processor, 'processing_thread'):
+                        logging.error("Processing thread not created yet")
+
+                        # Coba lagi nanti dengan timer
+                        from PyQt5.QtCore import QTimer
+                        QTimer.singleShot(500, self._connect_processor_signals)
+                        return
+
+                    # Connect frame_processed signal ke stream_view.update_frame
+                    try:
+                        # Pastikan tidak ada koneksi ganda
+                        try:
+                            self._video_processor.processing_thread.frame_processed.disconnect()
+                        except:
+                            pass  # Ignore errors if not already connected
+
+                        # Connect dengan QueuedConnection untuk thread safety
+                        from PyQt5.QtCore import Qt
+                        self._video_processor.processing_thread.frame_processed.connect(
+                            self.stream_view.update_frame,
+                            Qt.QueuedConnection
+                        )
+                        logging.info("Connected processing thread signals to stream view")
+                    except Exception as e:
+                        logging.error(f"Error connecting signals: {str(e)}")
+
+                except Exception as e:
+                    logging.error(f"Error in _connect_processor_signals: {str(e)}")
 
             # Add the method to the MainWindow instance
             import types
