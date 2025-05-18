@@ -11,6 +11,7 @@ import time
 from pathlib import Path
 from openvino.runtime import Core, get_version
 from threading import Lock
+from typing import Tuple, Optional, Dict, Any, Union, List
 
 from config.settings import VEHICLE_CLASSES, COLORS, DEFAULT_CONF_THRESHOLD, DEFAULT_NMS_THRESHOLD
 
@@ -227,7 +228,7 @@ class VehicleDetector:
             frame (numpy.ndarray): Input frame
 
         Returns:
-            numpy.ndarray: Network output
+            Tuple[numpy.ndarray, float]: Network output and inference time
         """
         with self.infer_lock:
             start_time = time.time()
@@ -246,6 +247,12 @@ class VehicleDetector:
             return results, infer_time
 
     def start_async_infer(self, frame):
+        """
+        Start asynchronous inference
+
+        Args:
+            frame (numpy.ndarray): Input frame
+        """
         with self.infer_lock:
             # Check if request is busy - use proper error handling
             try:
@@ -266,7 +273,7 @@ class VehicleDetector:
         Wait for current async request to complete and get result
 
         Returns:
-            tuple: (detections, inference_time_ms)
+            Tuple[numpy.ndarray, float]: Detections and inference time (ms)
         """
         with self.infer_lock:
             start_time = time.time()
@@ -299,8 +306,8 @@ class VehicleDetector:
             frame (numpy.ndarray): Input frame or None for async continuation
 
         Returns:
-            tuple: (processed_frame, results, infer_time_ms)
-                Will return (None, None, None) if async detection is not ready
+            Tuple[numpy.ndarray, float]: (detections, infer_time_ms)
+                Will return (None, None) if async detection is not ready
         """
         if self.is_async:
             if frame is not None:
@@ -308,17 +315,13 @@ class VehicleDetector:
                 self.start_async_infer(frame)
                 # For the first frame, we don't have results yet
                 if self.frame_count == 0:
-                    return None, None, None
+                    return None, None
 
             # Get results from the previous inference
-            detections, infer_time = self.wait_and_get_result()
-
-            # We need the previous frame for async mode
-            return detections, infer_time
+            return self.wait_and_get_result()
         else:
             # Synchronous mode is straightforward
-            detections, infer_time = self.infer_sync(frame)
-            return detections, infer_time
+            return self.infer_sync(frame)
 
     def get_performance_stats(self):
         """

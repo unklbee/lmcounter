@@ -7,10 +7,14 @@ GUI application for Vehicle Counter
 
 import numpy as np
 import time
+import logging
+import traceback
 from pathlib import Path
+from typing import Dict, List, Any, Optional, Tuple, Union
+
 from PyQt5.QtWidgets import (QMainWindow, QWidget, QHBoxLayout,
-    QFileDialog, QMessageBox, QDockWidget,
-)
+                             QFileDialog, QMessageBox, QDockWidget, QApplication
+                             )
 from PyQt5.QtCore import Qt, QTimer, pyqtSlot, QThread, pyqtSignal, QMutex, QMutexLocker
 
 # Import core components
@@ -18,7 +22,7 @@ from core.detector import VehicleDetector
 from core.tracker import VehicleTracker
 from core.counter import VehicleCounter
 from core.roi_manager import ROIManager
-from utils.video_sources import create_video_source
+from utils.video_sources import create_video_source, VideoSource
 from config.settings import (
     MODELS_DIR, DEFAULT_MODEL, DEFAULT_CONF_THRESHOLD, DEFAULT_NMS_THRESHOLD,
     VEHICLE_CLASSES, COLORS
@@ -28,13 +32,17 @@ from config.settings import (
 from ui.components.stream_view import VideoStreamView
 from ui.components.control_panel import ControlPanel
 
+# Setup logger
+logger = logging.getLogger(__name__)
+
 class ProcessingThread(QThread):
     """Thread for processing video frames"""
     frame_processed = pyqtSignal(np.ndarray, dict)
     processing_finished = pyqtSignal()
     error_occurred = pyqtSignal(str)
 
-    def __init__(self, source, detector, tracker, counter):
+    def __init__(self, source: VideoSource, detector: VehicleDetector,
+                 tracker: VehicleTracker, counter: VehicleCounter):
         """Initialize processing thread"""
         super().__init__()
         self.source = source
@@ -51,127 +59,217 @@ class ProcessingThread(QThread):
         """Main processing loop"""
         self.running = True
 
-        # Basic validation to prevent errors
-        if not self.source or not self.detector or not self.tracker or not self.counter:
-            self.error_occurred.emit("One or more processing components are missing")
+        # Validate components
+        if not self._validate_components():
             return
 
         try:
-            # Start async inference for first frame
-            if not hasattr(self.source, 'read'):
-                self.error_occurred.emit("Video source is invalid")
+            # Get first frame
+            ret, first_frame = self._get_first_frame()
+            if not ret:
                 return
 
-            ret, first_frame = self.source.read()
-            if not ret or first_frame is None:
-                self.error_occurred.emit("Failed to read first frame from source")
-                return
+            # Start async inference for first frame if needed
+            self._start_initial_detection(first_frame)
 
-            # Start async inference with proper error handling
-            if hasattr(self.detector, 'is_async') and self.detector.is_async:
-                try:
-                    self.detector.detect(first_frame)
-                except Exception as detect_error:
-                    self.error_occurred.emit(f"Error during initial detection: {str(detect_error)}")
-                    return
-
-            # Main processing loop with better error checking
-            frame_count = 0
-            while self.running:
-                # Use mutex to check if paused
-                with QMutexLocker(self._mutex):
-                    paused = self.paused
-
-                if paused:
-                    # Do not consume CPU when paused
-                    time.sleep(0.1)
-                    continue
-
-                # Read frame with timeout
-                ret, frame = self.source.read()
-                if not ret:
-                    # End of stream or error
-                    break
-
-                # Stop if frame is None
-                if frame is None:
-                    self.error_occurred.emit("Received empty frame from source")
-                    break
-
-                # Make a deep copy for drawing to avoid reference issues
-                vis_frame = frame.copy()
-
-                # Process frame with proper error handling
-                try:
-                    # Run detection based on mode
-                    if hasattr(self.detector, 'is_async') and self.detector.is_async:
-                        # For async mode, pass current frame and get results from previous frame
-                        detections, infer_time = self.detector.detect(frame)
-                        # Skip first frame in async mode as it won't have results
-                        if detections is None:
-                            continue
-                    else:
-                        # Sync mode
-                        detections, infer_time = self.detector.detect(frame)
-
-                    # Process detections and update tracking
-                    processed_frame, detection_results = self.detector.postprocess(vis_frame, detections)
-
-                    # Update tracker with proper error checking
-                    if not detection_results or "boxes" not in detection_results:
-                        # Skip frame if detection failed
-                        continue
-
-                    tracking_results = self.tracker.update(
-                        detection_results["boxes"],
-                        detection_results["classes"],
-                        detection_results["class_names"]
-                    )
-
-                    # Update counter
-                    counting_results = self.counter.update(tracking_results)
-
-                    # Drawing operations - wrap in try/except to prevent crashes
-                    try:
-                        # Draw tracking
-                        processed_frame = self.tracker.draw_tracking(processed_frame)
-                        # Draw counting
-                        processed_frame = self.counter.draw_counting_info(processed_frame)
-                        # Draw performance stats
-                        processed_frame = self.detector.draw_stats(processed_frame)
-                    except Exception as draw_error:
-                        # Continue even if drawing fails
-                        print(f"Warning: Drawing error: {str(draw_error)}")
-
-                    # Combine all results
-                    results = {
-                        "detection": detection_results,
-                        "tracking": tracking_results,
-                        "counting": counting_results,
-                        "performance": self.detector.get_performance_stats()
-                    }
-
-                    # Make a deep copy to ensure thread safety before emitting
-                    safe_frame = processed_frame.copy()
-
-                    # Emit processed frame - this is where Qt signal emission happens
-                    self.frame_processed.emit(safe_frame, results)
-                    frame_count += 1
-
-                except Exception as process_error:
-                    import traceback
-                    traceback.print_exc()
-                    self.error_occurred.emit(f"Frame processing error: {str(process_error)}")
-                    # Continue processing next frame instead of breaking
-                    continue
+            # Main processing loop
+            self._process_frames()
 
             # Signal that processing has finished normally
             self.processing_finished.emit()
 
         except Exception as e:
-            import traceback
-            traceback.print_exc()
-            self.error_occurred.emit(f"Processing error: {str(e)}")
+            self._handle_processing_error(e)
+
+    def _validate_components(self) -> bool:
+        """Validate that all required components are available"""
+        if not self.source or not self.detector or not self.tracker or not self.counter:
+            self.error_occurred.emit("One or more processing components are missing")
+            return False
+
+        # Basic validation to prevent errors
+        if not hasattr(self.source, 'read'):
+            self.error_occurred.emit("Video source is invalid")
+            return False
+
+        return True
+
+    def _get_first_frame(self) -> Tuple[bool, Optional[np.ndarray]]:
+        """Get the first frame from source"""
+        ret, first_frame = self.source.read()
+        if not ret or first_frame is None:
+            self.error_occurred.emit("Failed to read first frame from source")
+            return False, None
+        return True, first_frame
+
+    def _start_initial_detection(self, frame: np.ndarray):
+        """Start initial detection if using async mode"""
+        if hasattr(self.detector, 'is_async') and self.detector.is_async:
+            try:
+                self.detector.detect(frame)
+            except Exception as detect_error:
+                self.error_occurred.emit(f"Error during initial detection: {str(detect_error)}")
+                raise
+
+    def _process_frames(self):
+        """Process video frames"""
+        frame_count = 0
+        logger.info("Starting frame processing loop")
+
+        while self.running:
+            # Check if paused
+            if self._check_if_paused():
+                continue
+
+            # Read frame with timeout
+            ret, frame = self.source.read()
+            if not ret:
+                logger.warning("Failed to read frame or end of video")
+                # End of stream or error
+                break
+
+            if frame is None:
+                logger.error("Received empty frame from source")
+                self.error_occurred.emit("Received empty frame from source")
+                break
+
+            # Log setiap 30 frame untuk mengurangi spam log
+            if frame_count % 30 == 0:
+                logger.debug(f"Processing frame #{frame_count}")
+
+            # Process current frame
+            try:
+                self._process_single_frame(frame, frame_count)
+                frame_count += 1
+            except Exception as e:
+                logger.error(f"Error processing frame {frame_count}: {str(e)}")
+                logger.debug(traceback.format_exc())
+                # Continue processing next frame instead of breaking
+                continue
+
+        logger.info(f"Frame processing loop ended after {frame_count} frames")
+        self.processing_finished.emit()
+
+
+    def _check_if_paused(self) -> bool:
+        """Check if processing is paused"""
+        with QMutexLocker(self._mutex):
+            paused = self.paused
+
+        if paused:
+            # Do not consume CPU when paused
+            time.sleep(0.1)
+            return True
+        return False
+
+    def _process_single_frame(self, frame: np.ndarray, frame_count: int):
+        """Process a single video frame"""
+        # Make a deep copy for drawing to avoid reference issues
+        vis_frame = frame.copy()
+
+        # Run detection
+        results = self._run_detection(frame)
+        if results is None:
+            logger.warning(f"Detection returned None for frame {frame_count}")
+            return
+
+        detections, infer_time = results
+
+        # Skip if no detections available yet (first frame in async mode)
+        if detections is None:
+            logger.debug(f"Skipping frame {frame_count} - no detections available yet")
+            return
+
+        # Process detections and update tracking
+        processed_frame, detection_results = self.detector.postprocess(vis_frame, detections)
+
+        # Update tracker
+        if not detection_results or "boxes" not in detection_results:
+            logger.warning(f"No valid detection results for frame {frame_count}")
+            # Skip frame if detection failed
+            return
+
+        tracking_results = self.tracker.update(
+            detection_results["boxes"],
+            detection_results["classes"],
+            detection_results["class_names"]
+        )
+
+        # Update counter
+        counting_results = self.counter.update(tracking_results)
+
+        # Draw visualizations
+        processed_frame = self._draw_visualization(processed_frame)
+
+        # Combine all results
+        results = {
+            "detection": detection_results,
+            "tracking": tracking_results,
+            "counting": counting_results,
+            "performance": self.detector.get_performance_stats()
+        }
+
+        # Log untuk debugging
+        if frame_count % 30 == 0:
+            logger.debug(f"Emitting processed frame #{frame_count}, shape: {processed_frame.shape}")
+
+        # Emit processed frame - this is where Qt signal emission happens
+        try:
+            frame_copy = processed_frame.copy()
+            self.frame_processed.emit(frame_copy, results)
+        except Exception as e:
+            logger.error(f"Error emitting processed frame: {str(e)}")
+            logger.debug(traceback.format_exc())
+
+    def _run_detection(self, frame: np.ndarray) -> Optional[Tuple[np.ndarray, float]]:
+        """Run detection on frame and handle different return formats"""
+        try:
+            result = self.detector.detect(frame)
+
+            # Handle different possible return formats
+            if isinstance(result, tuple):
+                if len(result) == 2:
+                    # Most likely case: (detections, infer_time)
+                    return result
+                elif len(result) == 3:
+                    # In case detector returns (processed_frame, detections, infer_time)
+                    return result[1], result[2]
+                else:
+                    # Unexpected number of return values but still a tuple
+                    logger.warning(f"Detector returned tuple with unexpected length: {len(result)}")
+                    return result[0], 0.0
+            else:
+                # Not a tuple at all
+                logger.error(f"Detector returned unexpected type: {type(result)}")
+                return None
+
+        except Exception as e:
+            logger.error(f"Detection error: {str(e)}")
+            return None
+
+    def _draw_visualization(self, frame: np.ndarray) -> np.ndarray:
+        """Draw visualizations on the frame"""
+        try:
+            # Draw tracking
+            frame = self.tracker.draw_tracking(frame)
+
+            # Draw counting
+            frame = self.counter.draw_counting_info(frame)
+
+            # Draw performance stats
+            frame = self.detector.draw_stats(frame)
+
+            return frame
+        except Exception as e:
+            logger.warning(f"Drawing error: {str(e)}")
+            return frame
+
+    def _handle_processing_error(self, error: Exception):
+        """Handle processing error"""
+        error_msg = f"Processing error: {str(error)}"
+        logger.error(error_msg)
+        logger.debug(traceback.format_exc())
+        self.error_occurred.emit(error_msg)
 
     def stop(self):
         """Stop processing thread safely"""
@@ -196,9 +294,11 @@ class VehicleCounterGUI(QMainWindow):
         """Initialize GUI application"""
         super().__init__()
 
+        # Initialize state
         self.preset_path = preset_path
         self.video_source = None
         self.processing_thread = None
+        self.processing_active = False
 
         # Core components
         self.detector = None
@@ -278,14 +378,17 @@ class VehicleCounterGUI(QMainWindow):
             )
 
         except Exception as e:
-            import traceback
-            traceback.print_exc()
-            QMessageBox.critical(
-                self,
-                "Initialization Error",
-                f"Error initializing components: {str(e)}"
-            )
+            self._handle_component_init_error(e)
 
+    def _handle_component_init_error(self, error: Exception):
+        """Handle component initialization error"""
+        logger.error(f"Error initializing components: {str(error)}")
+        logger.debug(traceback.format_exc())
+        QMessageBox.critical(
+            self,
+            "Initialization Error",
+            f"Error initializing components: {str(error)}"
+        )
 
     def connect_signals(self):
         """Connect UI signals to slots with better error handling"""
@@ -312,8 +415,8 @@ class VehicleCounterGUI(QMainWindow):
             self.control_panel.finish_editing_clicked.connect(self.finish_editing, Qt.QueuedConnection)
             self.control_panel.cancel_editing_clicked.connect(self.cancel_editing, Qt.QueuedConnection)
         except Exception as e:
-            import traceback
-            traceback.print_exc()
+            logger.error(f"Failed to connect signals: {str(e)}")
+            logger.debug(traceback.format_exc())
             QMessageBox.critical(self, "Error", f"Failed to connect signals: {str(e)}")
 
     def update_ui(self):
@@ -321,11 +424,13 @@ class VehicleCounterGUI(QMainWindow):
         # Update status if processing thread is running
         if self.processing_thread and self.processing_thread.isRunning():
             self.control_panel.update_status("Processing")
+            self.processing_active = True
         else:
             self.control_panel.update_status("Idle")
+            self.processing_active = False
 
     @pyqtSlot(str, str, dict)
-    def change_source(self, source_type, source_path, options):
+    def change_source(self, source_type: str, source_path: str, options: Dict[str, Any]):
         """Change video source"""
         try:
             # Stop current processing
@@ -350,6 +455,8 @@ class VehicleCounterGUI(QMainWindow):
             self.control_panel.enable_start(True)
 
         except Exception as e:
+            logger.error(f"Error changing source: {str(e)}")
+            logger.debug(traceback.format_exc())
             QMessageBox.critical(self, "Error", f"Error changing source: {str(e)}")
 
     def start_processing(self):
@@ -359,82 +466,117 @@ class VehicleCounterGUI(QMainWindow):
             return
 
         try:
-            # First, ensure any existing thread is properly stopped and disconnected
-            if self.processing_thread is not None:
-                # Disconnect all signals safely to prevent memory leaks and recursive calls
-                try:
-                    self.processing_thread.frame_processed.disconnect()
-                    self.processing_thread.processing_finished.disconnect()
-                    self.processing_thread.error_occurred.disconnect()
-                except (TypeError, RuntimeError) as e:
-                    # More specific exception handling for Qt disconnection errors
-                    print(f"Signal disconnect warning (non-critical): {str(e)}")
+            # Stop and cleanup any existing thread
+            self.stop_and_cleanup_thread()
 
-                # Stop the thread and wait for it to finish
-                self.processing_thread.stop()
-                if self.processing_thread.isRunning():
-                    if not self.processing_thread.wait(3000):  # Wait up to 3 seconds
-                        print("Warning: Processing thread did not terminate in time")
-                        # In a production app, you might want to handle this differently
+            # Reset core components
+            self.reset_components()
 
-                # Delete the thread to ensure clean up
-                self.processing_thread.deleteLater()
-                self.processing_thread = None
-
-            # Reset components to clean state
-            if self.tracker:
-                self.tracker.reset()
-            if self.counter:
-                self.counter.reset()
-
-            # Create new processing thread with proper error handling
+            # Create new processing thread
             self.processing_thread = ProcessingThread(
                 self.video_source, self.detector, self.tracker, self.counter
             )
 
             # Connect thread signals - use QueuedConnection for thread safety
+            self.connect_thread_signals()
+
+            # Start processing
+            self.start_thread()
+
+        except Exception as e:
+            logger.error(f"Error starting processing: {str(e)}")
+            logger.debug(traceback.format_exc())
+            QMessageBox.critical(self, "Error", f"Error starting processing: {str(e)}")
+
+    def stop_and_cleanup_thread(self):
+        """Stop and clean up existing processing thread"""
+        if self.processing_thread is not None:
+            # Disconnect all signals safely to prevent memory leaks and recursive calls
+            try:
+                self.processing_thread.frame_processed.disconnect()
+                self.processing_thread.processing_finished.disconnect()
+                self.processing_thread.error_occurred.disconnect()
+            except (TypeError, RuntimeError) as e:
+                # More specific exception handling for Qt disconnection errors
+                logger.warning(f"Signal disconnect warning (non-critical): {str(e)}")
+
+            # Stop the thread and wait for it to finish
+            self.processing_thread.stop()
+            if self.processing_thread.isRunning():
+                if not self.processing_thread.wait(3000):  # Wait up to 3 seconds
+                    logger.warning("Warning: Processing thread did not terminate in time")
+
+            # Delete the thread to ensure clean up
+            self.processing_thread.deleteLater()
+            self.processing_thread = None
+
+    def reset_components(self):
+        """Reset core components to clean state"""
+        if self.tracker:
+            self.tracker.reset()
+        if self.counter:
+            self.counter.reset()
+
+    def connect_thread_signals(self):
+        """Connect processing thread signals"""
+        logger.info("Connecting thread signals")
+
+        try:
+            # Connect using QueuedConnection for thread safety
             self.processing_thread.frame_processed.connect(
                 self.on_frame_processed,
-                type=Qt.QueuedConnection  # Use QueuedConnection for UI updates from other threads
+                type=Qt.QueuedConnection
             )
+            logger.info("Connected frame_processed signal")
+
             self.processing_thread.processing_finished.connect(
                 self.on_processing_finished,
                 type=Qt.QueuedConnection
             )
+            logger.info("Connected processing_finished signal")
+
             self.processing_thread.error_occurred.connect(
                 self.on_processing_error,
                 type=Qt.QueuedConnection
             )
-
-            # Start processing in a try/except block
-            try:
-                self.processing_thread.start(QThread.HighPriority)  # Set higher priority
-                # Update UI only after thread has successfully started
-                self.control_panel.set_processing_state(True)
-            except Exception as e:
-                QMessageBox.critical(self, "Thread Error", f"Failed to start processing: {str(e)}")
-                self.processing_thread = None
-
+            logger.info("Connected error_occurred signal")
         except Exception as e:
-            import traceback
-            traceback.print_exc()
-            QMessageBox.critical(self, "Error", f"Error preparing processing: {str(e)}")
+            logger.error(f"Error connecting thread signals: {str(e)}")
+            logger.debug(traceback.format_exc())
+            raise
+
+    def start_thread(self):
+        """Start the processing thread"""
+        try:
+            self.processing_thread.start(QThread.HighPriority)
+            # Update UI only after thread has successfully started
+            self.control_panel.set_processing_state(True)
+            self.processing_active = True
+        except Exception as e:
+            logger.error(f"Failed to start processing thread: {str(e)}")
+            logger.debug(traceback.format_exc())
+            QMessageBox.critical(self, "Thread Error", f"Failed to start processing: {str(e)}")
+            self.processing_thread = None
+            self.processing_active = False
 
     @pyqtSlot(np.ndarray, dict)
-    def on_frame_processed(self, frame, results):
+    def on_frame_processed(self, frame: np.ndarray, results: Dict[str, Any]):
         """Handle processed frame"""
         try:
-            # Make a copy of the frame to ensure thread safety
-            frame_copy = frame.copy()
+            logger.debug(f"Received frame, shape: {frame.shape if frame is not None else 'None'}")
 
-            # Update stream view
-            self.stream_view.update_frame(frame_copy)
+            if frame is None:
+                logger.error("Received None frame in on_frame_processed")
+                return
+
+            # Update stream view directly without copying again
+            self.stream_view.update_frame(frame)
 
             # Update statistics
             self.control_panel.update_statistics(results)
         except Exception as e:
-            print(f"Error processing frame: {str(e)}")
-            # Don't show message box here as it would flood the UI
+            logger.error(f"Error in on_frame_processed: {str(e)}")
+            logger.debug(traceback.format_exc())
 
     @pyqtSlot()
     def stop_processing(self):
@@ -442,26 +584,21 @@ class VehicleCounterGUI(QMainWindow):
         if self.processing_thread and self.processing_thread.isRunning():
             self.processing_thread.stop()
             self.control_panel.set_processing_state(False)
-
-    @pyqtSlot(np.ndarray, dict)
-    def on_frame_processed(self, frame, results):
-        """Handle processed frame"""
-        # Update stream view
-        self.stream_view.update_frame(frame)
-
-        # Update statistics
-        self.control_panel.update_statistics(results)
+            self.processing_active = False
 
     @pyqtSlot()
     def on_processing_finished(self):
         """Handle processing finished event"""
         self.control_panel.set_processing_state(False)
+        self.processing_active = False
 
     @pyqtSlot(str)
-    def on_processing_error(self, error_msg):
+    def on_processing_error(self, error_msg: str):
         """Handle processing error"""
+        logger.error(f"Processing error: {error_msg}")
         QMessageBox.critical(self, "Processing Error", error_msg)
         self.control_panel.set_processing_state(False)
+        self.processing_active = False
 
     def save_preset(self, file_path=None):
         """Save current configuration to preset file"""
@@ -500,6 +637,8 @@ class VehicleCounterGUI(QMainWindow):
             QMessageBox.information(self, "Success", "Preset saved successfully")
 
         except Exception as e:
+            logger.error(f"Error saving preset: {str(e)}")
+            logger.debug(traceback.format_exc())
             QMessageBox.critical(self, "Error", f"Error saving preset: {str(e)}")
 
     def load_preset_dialog(self):
@@ -524,6 +663,8 @@ class VehicleCounterGUI(QMainWindow):
             QMessageBox.information(self, "Success", "Preset loaded successfully")
 
         except Exception as e:
+            logger.error(f"Error loading preset: {str(e)}")
+            logger.debug(traceback.format_exc())
             QMessageBox.critical(self, "Error", f"Error loading preset: {str(e)}")
 
     @pyqtSlot()

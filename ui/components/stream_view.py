@@ -5,6 +5,8 @@
 Video stream view component for Vehicle Counter application
 Displays video stream with detections and counting visualizations
 """
+import logging
+import traceback
 
 import cv2
 import numpy as np
@@ -14,6 +16,9 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt, pyqtSignal, QPoint, QRect, QSize
 from PyQt5.QtGui import QImage, QPixmap, QPainter, QPen, QColor, QFont
+
+logger = logging.getLogger(__name__)
+
 
 class VideoStreamView(QWidget):
     """Video stream view component"""
@@ -95,24 +100,33 @@ class VideoStreamView(QWidget):
             frame (numpy.ndarray): Video frame to display
         """
         if frame is None:
+            logger.error("Received None frame in update_frame")
             return
 
-        # Store original frame
-        self.frame = frame
+        try:
+            # Store original frame
+            self.frame = frame.copy()  # Explicit copy to avoid reference issues
 
-        # Get frame dimensions
-        h, w, c = frame.shape
-        self.source_frame_size = (w, h)
+            # Get frame dimensions
+            if len(frame.shape) < 3:
+                logger.error(f"Invalid frame shape: {frame.shape}")
+                return
 
-        # Update resolution label
-        self.resolution_label.setText(f"Resolution: {w}x{h}")
+            h, w, c = frame.shape
+            self.source_frame_size = (w, h)
 
-        # Create QImage from frame
-        self.convert_frame_to_pixmap()
+            # Update resolution label
+            self.resolution_label.setText(f"Resolution: {w}x{h}")
 
-        # Draw ROIs if editing
-        if self.editing_enabled and self.roi_manager:
-            self.draw_editing_overlay()
+            # Create QImage from frame
+            self.convert_frame_to_pixmap()
+
+            # Draw ROIs if editing
+            if self.editing_enabled and self.roi_manager:
+                self.draw_editing_overlay()
+        except Exception as e:
+            logger.error(f"Error in update_frame: {str(e)}")
+            logger.debug(traceback.format_exc())
 
     def convert_frame_to_pixmap(self):
         """Convert current frame to QPixmap and display"""

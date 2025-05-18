@@ -10,6 +10,8 @@ import os
 import sys
 import traceback
 from pathlib import Path
+from typing import Optional, Dict, Any, List, Tuple
+
 from PyQt5.QtWidgets import (
     QMainWindow, QAction, QToolBar, QMenuBar, QStatusBar, QDockWidget,
     QWidget, QVBoxLayout, QHBoxLayout, QSplitter, QFileDialog,
@@ -30,13 +32,17 @@ from config.settings import VERSION
 # Setup logger
 logger = get_logger(__name__)
 
+
 class AboutDialog(QDialog):
     """About dialog for the application"""
 
     def __init__(self, parent=None):
         """Initialize about dialog"""
         super().__init__(parent)
+        self.init_ui()
 
+    def init_ui(self):
+        """Initialize dialog UI"""
         self.setWindowTitle("About Vehicle Counter")
         self.setMinimumWidth(400)
 
@@ -95,19 +101,26 @@ class MainWindow(QMainWindow):
         """Initialize main window"""
         super().__init__()
 
-        # Settings
+        # State initialization
         self.settings = QSettings("VehicleCounter", "Application")
-
-        # Get preset manager
         self.preset_manager = get_preset_manager()
+        self._video_processor = None
 
-        # Initialize UI without connecting signals
+        # UI components (initialized in init_ui)
+        self.central_widget = None
+        self.main_layout = None
+        self.main_splitter = None
+        self.stream_view = None
+        self.control_panel = None
+        self.toolbar = None
+        self.statusBar = None
+        self.preset_dock = None
+        self.preset_manager_widget = None
+        self.recent_presets_menu = None
+
+        # Initialize UI
         self.init_ui()
-
-        # Restore window state
         self.restore_window_state()
-
-        # Connect signals AFTER all components are created
         self.connect_signals()
 
         # Auto-save timer (every 5 minutes)
@@ -123,6 +136,16 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Vehicle Counter")
         self.setMinimumSize(1024, 768)
 
+        # Initialize components
+        self.setup_central_widget()
+        self.create_menus()
+        self.create_toolbar()
+        self.setup_status_bar()
+        self.setup_dock_widgets()
+        self.setup_shortcuts()
+
+    def setup_central_widget(self):
+        """Set up the central widget and main components"""
         # Central widget
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
@@ -145,149 +168,178 @@ class MainWindow(QMainWindow):
         # Set initial splitter sizes (70% stream, 30% control panel)
         self.main_splitter.setSizes([700, 300])
 
-        # Create menus
-        self.create_menus()
-
-        # Create toolbar
-        self.create_toolbar()
-
-        # Create status bar
+    def setup_status_bar(self):
+        """Set up the status bar"""
         self.statusBar = QStatusBar()
         self.setStatusBar(self.statusBar)
         self.statusBar.showMessage("Ready")
-
-        # Set up dock widgets
-        self.setup_dock_widgets()
-
-        # Set up keyboard shortcuts
-        self.setup_shortcuts()
-
-        # Note: DO NOT call connect_signals() here
 
     def create_menus(self):
         """Create application menus"""
         # File menu
         file_menu = self.menuBar().addMenu("&File")
+        self.create_file_menu(file_menu)
 
+        # Edit menu
+        edit_menu = self.menuBar().addMenu("&Edit")
+        self.create_edit_menu(edit_menu)
+
+        # View menu
+        view_menu = self.menuBar().addMenu("&View")
+        self.create_view_menu(view_menu)
+
+        # Tools menu
+        tools_menu = self.menuBar().addMenu("&Tools")
+        self.create_tools_menu(tools_menu)
+
+        # Help menu
+        help_menu = self.menuBar().addMenu("&Help")
+        self.create_help_menu(help_menu)
+
+    def create_file_menu(self, menu: QMenu):
+        """Create file menu items
+
+        Args:
+            menu: Menu to add items to
+        """
         # Open source
         open_action = QAction("&Open Video...", self)
         open_action.setShortcut("Ctrl+O")
         open_action.triggered.connect(self.open_video_file)
-        file_menu.addAction(open_action)
+        menu.addAction(open_action)
 
         # Open RTSP stream
         rtsp_action = QAction("Open RTSP &Stream...", self)
         rtsp_action.triggered.connect(self.open_rtsp_stream)
-        file_menu.addAction(rtsp_action)
+        menu.addAction(rtsp_action)
 
         # Open webcam
         webcam_action = QAction("Open &Webcam", self)
         webcam_action.triggered.connect(self.open_webcam)
-        file_menu.addAction(webcam_action)
+        menu.addAction(webcam_action)
 
-        file_menu.addSeparator()
+        menu.addSeparator()
 
         # Preset submenu
-        preset_menu = file_menu.addMenu("&Presets")
+        preset_menu = menu.addMenu("&Presets")
+        self.create_preset_submenu(preset_menu)
 
-        # Manage presets
-        manage_presets_action = QAction("&Manage Presets...", self)
-        manage_presets_action.triggered.connect(self.show_preset_manager)
-        preset_menu.addAction(manage_presets_action)
-
-        # Save preset
-        save_preset_action = QAction("&Save Preset...", self)
-        save_preset_action.triggered.connect(self.save_preset)
-        preset_menu.addAction(save_preset_action)
-
-        # Load preset
-        load_preset_action = QAction("&Load Preset...", self)
-        load_preset_action.triggered.connect(self.load_preset)
-        preset_menu.addAction(load_preset_action)
-
-        # Save as default
-        save_default_action = QAction("Save as &Default", self)
-        save_default_action.triggered.connect(self.save_default_preset)
-        preset_menu.addAction(save_default_action)
-
-        preset_menu.addSeparator()
-
-        # Recent presets submenu
-        self.recent_presets_menu = preset_menu.addMenu("&Recent Presets")
-        self.update_recent_presets_menu()
-
-        file_menu.addSeparator()
+        menu.addSeparator()
 
         # Exit action
         exit_action = QAction("E&xit", self)
         exit_action.setShortcut("Ctrl+Q")
         exit_action.triggered.connect(self.close)
-        file_menu.addAction(exit_action)
+        menu.addAction(exit_action)
 
-        # Edit menu
-        edit_menu = self.menuBar().addMenu("&Edit")
+    def create_preset_submenu(self, menu: QMenu):
+        """Create preset submenu items
 
+        Args:
+            menu: Menu to add items to
+        """
+        # Manage presets
+        manage_presets_action = QAction("&Manage Presets...", self)
+        manage_presets_action.triggered.connect(self.show_preset_manager)
+        menu.addAction(manage_presets_action)
+
+        # Save preset
+        save_preset_action = QAction("&Save Preset...", self)
+        save_preset_action.triggered.connect(self.save_preset)
+        menu.addAction(save_preset_action)
+
+        # Load preset
+        load_preset_action = QAction("&Load Preset...", self)
+        load_preset_action.triggered.connect(self.load_preset)
+        menu.addAction(load_preset_action)
+
+        # Save as default
+        save_default_action = QAction("Save as &Default", self)
+        save_default_action.triggered.connect(self.save_default_preset)
+        menu.addAction(save_default_action)
+
+        menu.addSeparator()
+
+        # Recent presets submenu
+        self.recent_presets_menu = menu.addMenu("&Recent Presets")
+        self.update_recent_presets_menu()
+
+    def create_edit_menu(self, menu: QMenu):
+        """Create edit menu items
+
+        Args:
+            menu: Menu to add items to
+        """
         # Preferences
         pref_action = QAction("&Preferences...", self)
         pref_action.triggered.connect(self.show_preferences)
-        edit_menu.addAction(pref_action)
+        menu.addAction(pref_action)
 
-        # View menu
-        view_menu = self.menuBar().addMenu("&View")
+    def create_view_menu(self, menu: QMenu):
+        """Create view menu items
 
+        Args:
+            menu: Menu to add items to
+        """
         # Toggle fullscreen
         fullscreen_action = QAction("&Fullscreen", self)
         fullscreen_action.setShortcut("F11")
         fullscreen_action.setCheckable(True)
         fullscreen_action.triggered.connect(self.toggle_fullscreen)
-        view_menu.addAction(fullscreen_action)
+        menu.addAction(fullscreen_action)
 
         # Toggle control panel
         toggle_control_action = QAction("Toggle &Control Panel", self)
         toggle_control_action.setShortcut("F10")
         toggle_control_action.triggered.connect(self.toggle_control_panel)
-        view_menu.addAction(toggle_control_action)
+        menu.addAction(toggle_control_action)
 
         # Toggle grid
         grid_action = QAction("Show &Grid", self)
         grid_action.setCheckable(True)
         grid_action.triggered.connect(self.toggle_grid)
-        view_menu.addAction(grid_action)
+        menu.addAction(grid_action)
 
         # Toggle info overlay
         info_action = QAction("Show &Info Overlay", self)
         info_action.setCheckable(True)
         info_action.setChecked(True)
         info_action.triggered.connect(self.toggle_info)
-        view_menu.addAction(info_action)
+        menu.addAction(info_action)
 
-        # Tools menu
-        tools_menu = self.menuBar().addMenu("&Tools")
+    def create_tools_menu(self, menu: QMenu):
+        """Create tools menu items
 
+        Args:
+            menu: Menu to add items to
+        """
         # Edit ROI
         roi_action = QAction("Edit &ROI", self)
         roi_action.triggered.connect(self.edit_roi)
-        tools_menu.addAction(roi_action)
+        menu.addAction(roi_action)
 
         # Edit Line
         line_action = QAction("Edit &Line", self)
         line_action.triggered.connect(self.edit_line)
-        tools_menu.addAction(line_action)
+        menu.addAction(line_action)
 
-        tools_menu.addSeparator()
+        menu.addSeparator()
 
         # Export counts
         export_action = QAction("&Export Counts...", self)
         export_action.triggered.connect(self.export_counts)
-        tools_menu.addAction(export_action)
+        menu.addAction(export_action)
 
-        # Help menu
-        help_menu = self.menuBar().addMenu("&Help")
+    def create_help_menu(self, menu: QMenu):
+        """Create help menu items
 
+        Args:
+            menu: Menu to add items to
+        """
         # About
         about_action = QAction("&About", self)
         about_action.triggered.connect(self.show_about)
-        help_menu.addAction(about_action)
+        menu.addAction(about_action)
 
     def create_toolbar(self):
         """Create main toolbar"""
@@ -295,6 +347,19 @@ class MainWindow(QMainWindow):
         self.toolbar.setIconSize(QSize(24, 24))
         self.addToolBar(self.toolbar)
 
+        # Processing actions
+        self.add_processing_actions()
+        self.toolbar.addSeparator()
+
+        # Editing actions
+        self.add_editing_actions()
+        self.toolbar.addSeparator()
+
+        # Preset actions
+        self.add_preset_actions()
+
+    def add_processing_actions(self):
+        """Add processing control actions to toolbar"""
         # Start processing
         start_action = QAction("Start", self)
         start_action.triggered.connect(self.start_processing)
@@ -311,8 +376,8 @@ class MainWindow(QMainWindow):
         pause_action.triggered.connect(self.pause_processing)
         self.toolbar.addAction(pause_action)
 
-        self.toolbar.addSeparator()
-
+    def add_editing_actions(self):
+        """Add ROI editing actions to toolbar"""
         # Edit ROI
         roi_action = QAction("Edit ROI", self)
         roi_action.triggered.connect(self.edit_roi)
@@ -323,8 +388,8 @@ class MainWindow(QMainWindow):
         line_action.triggered.connect(self.edit_line)
         self.toolbar.addAction(line_action)
 
-        self.toolbar.addSeparator()
-
+    def add_preset_actions(self):
+        """Add preset actions to toolbar"""
         # Load preset
         load_preset_action = QAction("Load Preset", self)
         load_preset_action.triggered.connect(self.load_preset)
@@ -373,6 +438,11 @@ class MainWindow(QMainWindow):
 
     def connect_signals(self):
         """Connect component signals"""
+        self.connect_control_panel_signals()
+        self.connect_preset_manager_signals()
+
+    def connect_control_panel_signals(self):
+        """Connect control panel signals"""
         # Connect control panel signals
         self.control_panel.source_changed.connect(self.on_source_changed)
         self.control_panel.start_clicked.connect(self.start_processing)
@@ -387,7 +457,8 @@ class MainWindow(QMainWindow):
         self.control_panel.finish_editing_clicked.connect(self.finish_editing)
         self.control_panel.cancel_editing_clicked.connect(self.cancel_editing)
 
-        # Connect preset manager signals
+    def connect_preset_manager_signals(self):
+        """Connect preset manager signals"""
         self.preset_manager_widget.preset_selected.connect(self.on_preset_selected)
         self.preset_manager_widget.preset_loaded.connect(self.on_preset_loaded)
 
@@ -404,6 +475,10 @@ class MainWindow(QMainWindow):
             self.restoreState(state)
 
         # Restore splitter position
+        self.restore_splitter_state()
+
+    def restore_splitter_state(self):
+        """Restore main splitter position"""
         splitter_sizes = self.settings.value("SplitterSizes")
         if splitter_sizes:
             try:
@@ -467,7 +542,11 @@ class MainWindow(QMainWindow):
         self.recent_presets_menu.addAction(clear_action)
 
     def add_to_recent_presets(self, path):
-        """Add preset path to recent presets list"""
+        """Add preset path to recent presets list
+
+        Args:
+            path: Path to preset file
+        """
         # Get current list
         recent_presets = self.settings.value("RecentPresets", [])
 
@@ -496,6 +575,7 @@ class MainWindow(QMainWindow):
         self.settings.setValue("RecentPresets", [])
         self.update_recent_presets_menu()
 
+    # Source handling methods
     def open_video_file(self):
         """Open video file dialog"""
         file_path, _ = QFileDialog.getOpenFileName(
@@ -504,16 +584,24 @@ class MainWindow(QMainWindow):
         )
 
         if file_path:
-            # Set source type to file
-            self.control_panel.source_type_combo.setCurrentIndex(
-                self.control_panel.source_type_combo.findData("file")
-            )
+            self.set_file_source(file_path)
 
-            # Set file path
-            self.control_panel.source_path_edit.setText(file_path)
+    def set_file_source(self, file_path):
+        """Set file as video source
 
-            # Apply source
-            self.control_panel.apply_source()
+        Args:
+            file_path: Path to video file
+        """
+        # Set source type to file
+        self.control_panel.source_type_combo.setCurrentIndex(
+            self.control_panel.source_type_combo.findData("file")
+        )
+
+        # Set file path
+        self.control_panel.source_path_edit.setText(file_path)
+
+        # Apply source
+        self.control_panel.apply_source()
 
     def open_rtsp_stream(self):
         """Open RTSP stream dialog"""
@@ -538,16 +626,24 @@ class MainWindow(QMainWindow):
         if result == QDialog.Accepted:
             rtsp_url = rtsp_edit.text().strip()
             if rtsp_url:
-                # Set source type to RTSP
-                self.control_panel.source_type_combo.setCurrentIndex(
-                    self.control_panel.source_type_combo.findData("rtsp")
-                )
+                self.set_rtsp_source(rtsp_url)
 
-                # Set RTSP URL
-                self.control_panel.source_path_edit.setText(rtsp_url)
+    def set_rtsp_source(self, rtsp_url):
+        """Set RTSP stream as video source
 
-                # Apply source
-                self.control_panel.apply_source()
+        Args:
+            rtsp_url: RTSP URL
+        """
+        # Set source type to RTSP
+        self.control_panel.source_type_combo.setCurrentIndex(
+            self.control_panel.source_type_combo.findData("rtsp")
+        )
+
+        # Set RTSP URL
+        self.control_panel.source_path_edit.setText(rtsp_url)
+
+        # Apply source
+        self.control_panel.apply_source()
 
     def open_webcam(self):
         """Open webcam"""
@@ -559,6 +655,7 @@ class MainWindow(QMainWindow):
         # Apply source
         self.control_panel.apply_source()
 
+    # Preset management methods
     def show_preset_manager(self):
         """Show preset manager dock"""
         self.preset_dock.setVisible(True)
@@ -579,11 +676,10 @@ class MainWindow(QMainWindow):
             self.load_preset_from_path(file_path)
 
     def load_preset_from_path(self, path):
-        """
-        Load preset from specific path
+        """Load preset from specific path
 
         Args:
-            path (str): Path to preset file
+            path: Path to preset file
         """
         preset = self.preset_manager.load_preset(path=path)
         if preset:
@@ -627,8 +723,13 @@ class MainWindow(QMainWindow):
         # Show dialog
         dialog.exec_()
 
+    # View control methods
     def toggle_fullscreen(self, checked):
-        """Toggle fullscreen mode"""
+        """Toggle fullscreen mode
+
+        Args:
+            checked: Whether fullscreen is enabled
+        """
         if checked:
             self.showFullScreen()
         else:
@@ -647,7 +748,11 @@ class MainWindow(QMainWindow):
             self.main_splitter.setSizes([int(total_width * 0.7), int(total_width * 0.3)])
 
     def toggle_grid(self, checked=None):
-        """Toggle grid on stream view"""
+        """Toggle grid on stream view
+
+        Args:
+            checked: Whether grid is enabled (None for toggle)
+        """
         if checked is None:
             # If called without argument, toggle current state
             self.stream_view.toggle_grid()
@@ -657,7 +762,11 @@ class MainWindow(QMainWindow):
             self.stream_view.refresh()
 
     def toggle_info(self, checked=None):
-        """Toggle info overlay on stream view"""
+        """Toggle info overlay on stream view
+
+        Args:
+            checked: Whether info is enabled (None for toggle)
+        """
         if checked is None:
             # If called without argument, toggle current state
             self.stream_view.toggle_info()
@@ -666,6 +775,7 @@ class MainWindow(QMainWindow):
             self.stream_view.show_info = checked
             self.stream_view.refresh()
 
+    # ROI editing methods
     def edit_roi(self):
         """Start ROI editing mode"""
         self.control_panel.edit_roi_clicked.emit()
@@ -692,8 +802,10 @@ class MainWindow(QMainWindow):
         dialog = AboutDialog(self)
         dialog.exec_()
 
+    # Video processing methods
     def start_processing(self):
         """Start video processing"""
+        # Guard against recursive calls
         if getattr(self, '_in_start_processing', False):
             return
         self._in_start_processing = True
@@ -703,53 +815,65 @@ class MainWindow(QMainWindow):
             self.statusBar.showMessage("Processing started")
             self.control_panel.set_processing_state(True)
 
-            # 2) Directly implement video processing instead of checking for method
-            try:
-                logging.info("Starting video processing directly")
+            # 2) Start video processing
+            self.start_video_processor()
 
-                # Import VehicleCounterGUI
-                from ui.gui_app import VehicleCounterGUI
-
-                # Create video processor if not already created
-                if not hasattr(self, '_video_processor'):
-                    self._video_processor = VehicleCounterGUI()
-                    logging.info("VehicleCounterGUI instance created")
-
-                # Get source configuration from control panel
-                source_type = self.control_panel.source_type_combo.currentData()
-                source_path = self.control_panel.source_path_edit.text()
-                options = {}  # Add any option parameters from control panel if needed
-
-                # Change source in the video processor
-                self._video_processor.change_source(source_type, source_path, options)
-
-                # Start processing
-                self._video_processor.start_processing()
-
-                # Connect signals to update UI
-                if hasattr(self._video_processor, 'processing_thread'):
-                    try:
-                        # First disconnect any existing connections
-                        self._video_processor.processing_thread.frame_processed.disconnect()
-                    except Exception:
-                        pass  # Ignore if no connections existed
-
-                    # Connect to update our stream view
-                    self._video_processor.processing_thread.frame_processed.connect(
-                        self.on_frame_processed if hasattr(self, 'on_frame_processed') else self.stream_view.update_frame,
-                        type=Qt.QueuedConnection
-                    )
-
-                logging.info("Video processing started successfully")
-
-            except Exception as e:
-                logging.error(f"Error starting video processing: {str(e)}")
-                traceback.print_exc()
-                from PyQt5.QtWidgets import QMessageBox
-                QMessageBox.critical(self, "Processing Error", f"Failed to start video processing: {str(e)}")
         finally:
             del self._in_start_processing
 
+    def start_video_processor(self):
+        """Initialize and start the video processor"""
+        try:
+            logging.info("Starting video processing directly")
+
+            # Import VehicleCounterGUI
+            from ui.gui_app import VehicleCounterGUI
+
+            # Create video processor if not already created
+            if not hasattr(self, '_video_processor') or self._video_processor is None:
+                self._video_processor = VehicleCounterGUI()
+                logging.info("VehicleCounterGUI instance created")
+
+            # Get source configuration from control panel
+            source_type = self.control_panel.source_type_combo.currentData()
+            source_path = self.control_panel.source_path_edit.text()
+            options = {}  # Add any option parameters from control panel if needed
+
+            # Change source in the video processor
+            self._video_processor.change_source(source_type, source_path, options)
+
+            # Start processing
+            self._video_processor.start_processing()
+
+            # Connect processor signals
+            self.connect_processor_signals()
+
+            logging.info("Video processing started successfully")
+
+        except Exception as e:
+            logging.error(f"Error starting video processing: {str(e)}")
+            traceback.print_exc()
+            QMessageBox.critical(self, "Processing Error",
+                                 f"Failed to start video processing: {str(e)}")
+
+    def connect_processor_signals(self):
+        """Connect video processor signals"""
+        if hasattr(self._video_processor, 'processing_thread'):
+            try:
+                # First disconnect any existing connections
+                self._video_processor.processing_thread.frame_processed.disconnect()
+            except Exception:
+                pass  # Ignore if no connections existed
+
+            # Connect to update our stream view
+            stream_view_update = (self.on_frame_processed
+                                  if hasattr(self, 'on_frame_processed')
+                                  else self.stream_view.update_frame)
+
+            self._video_processor.processing_thread.frame_processed.connect(
+                stream_view_update,
+                type=Qt.QueuedConnection
+            )
 
     def stop_processing(self):
         """Stop video processing"""
@@ -757,7 +881,11 @@ class MainWindow(QMainWindow):
         self.statusBar.showMessage("Processing stopped")
 
     def pause_processing(self, paused):
-        """Pause/resume video processing"""
+        """Pause/resume video processing
+
+        Args:
+            paused: Whether to pause or resume
+        """
         self.control_panel.pause_clicked.emit(paused)
 
         if hasattr(self, '_video_processor') and hasattr(self._video_processor, 'processing_thread'):
@@ -786,20 +914,20 @@ class MainWindow(QMainWindow):
                 self.pause_processing(action.isChecked())
                 break
 
+    # Event handlers
     def on_source_changed(self, source_type, source_path, options):
-        """
-        Handle source changed
+        """Handle source changed
 
         Args:
-            source_type (str): Source type
-            source_path (str): Source path
-            options (dict): Source options
+            source_type: Source type
+            source_path: Source path
+            options: Source options
         """
         # Update status bar
         self.statusBar.showMessage(f"Source changed: {source_type} - {source_path}")
 
         # Update video processor if it exists
-        if hasattr(self, '_video_processor'):
+        if hasattr(self, '_video_processor') and self._video_processor:
             try:
                 self._video_processor.change_source(source_type, source_path, options)
                 logger.info(f"Updated source in video processor: {source_type} - {source_path}")
@@ -807,11 +935,10 @@ class MainWindow(QMainWindow):
                 logger.error(f"Error updating source in video processor: {e}")
 
     def on_pause_toggled(self, paused):
-        """
-        Handle pause toggled
+        """Handle pause toggled
 
         Args:
-            paused (bool): Whether video is paused
+            paused: Whether video is paused
         """
         # Find pause button in toolbar and update its state
         for action in self.toolbar.actions():
@@ -823,11 +950,10 @@ class MainWindow(QMainWindow):
         self.pause_processing(paused)
 
     def on_preset_saved(self, path):
-        """
-        Handle preset saved
+        """Handle preset saved
 
         Args:
-            path (str): Path to saved preset
+            path: Path to saved preset
         """
         self.add_to_recent_presets(path)
         self.statusBar.showMessage(f"Preset saved: {Path(path).stem}")
@@ -837,11 +963,10 @@ class MainWindow(QMainWindow):
             self.preset_manager_widget.refresh()
 
     def on_preset_loaded(self, path):
-        """
-        Handle preset loaded
+        """Handle preset loaded
 
         Args:
-            path (str): Path to loaded preset
+            path: Path to loaded preset
         """
         self.add_to_recent_presets(path)
 
@@ -849,11 +974,10 @@ class MainWindow(QMainWindow):
         self.statusBar.showMessage(f"Preset loaded: {Path(path).stem}")
 
     def on_preset_selected(self, preset_id):
-        """
-        Handle preset selected in preset manager
+        """Handle preset selected in preset manager
 
         Args:
-            preset_id (str): Selected preset ID
+            preset_id: Selected preset ID
         """
         # Update status
         preset_info = self.preset_manager.presets.get(preset_id, {})
@@ -861,22 +985,20 @@ class MainWindow(QMainWindow):
             self.statusBar.showMessage(f"Preset selected: {preset_info.get('name', 'Unnamed')}")
 
     def closeEvent(self, event):
-        """Handle window close event"""
+        """Handle window close event
+
+        Args:
+            event: Close event
+        """
         # Save window state
         self.save_window_state()
 
-        # Stop processing and clean up
-        if hasattr(self, '_video_processor'):
-            # Stop processing
-            if hasattr(self._video_processor, 'processing_thread') and self._video_processor.processing_thread:
-                try:
-                    self._video_processor.stop_processing()
-                    logger.info("Processing stopped during window close")
-                except Exception as e:
-                    logger.error(f"Error stopping processing during close: {e}")
+        # Clean up video processor
+        self.cleanup_video_processor()
 
-        # Ask for confirmation if processing is active
-        if hasattr(self.control_panel, 'processing_active') and self.control_panel.processing_active:
+        # Check if processing is active
+        if self.is_processing_active():
+            # Ask for confirmation
             reply = QMessageBox.question(
                 self,
                 "Confirm Exit",
@@ -892,3 +1014,22 @@ class MainWindow(QMainWindow):
         # Accept the event and close
         event.accept()
 
+    def cleanup_video_processor(self):
+        """Clean up video processor resources"""
+        if hasattr(self, '_video_processor') and self._video_processor:
+            # Stop processing
+            if hasattr(self._video_processor, 'processing_thread') and self._video_processor.processing_thread:
+                try:
+                    self._video_processor.stop_processing()
+                    logger.info("Processing stopped during window close")
+                except Exception as e:
+                    logger.error(f"Error stopping processing during close: {e}")
+
+    def is_processing_active(self):
+        """Check if processing is active
+
+        Returns:
+            bool: True if processing is active
+        """
+        return (hasattr(self.control_panel, 'processing_active') and
+                self.control_panel.processing_active)
